@@ -32,11 +32,25 @@ export class DowntownBuilder {
         if (bx < -70 && bz > 70) continue;
 
         // --- DENSE DOWNTOWN SKYSCRAPER BLOCK ---
-        // Sidewalk slab
-        const sw = new THREE.Mesh(new THREE.BoxGeometry(bSize, 0.25, bSize), mats.sidewalkMat);
-        sw.position.set(bx, 0.12, bz);
+        // Sidewalk slab & Raised Granite Curbs (as in webgpu_generator_city.html)
+        const sw = new THREE.Mesh(new THREE.BoxGeometry(bSize - 0.6, 0.28, bSize - 0.6), mats.sidewalkMat);
+        sw.position.set(bx, 0.14, bz);
         sw.receiveShadow = true;
-        root.add(sw);
+
+        // Perimeter Curb Frame
+        const curbNorth = new THREE.Mesh(new THREE.BoxGeometry(bSize, 0.32, 0.35), mats.curbMat);
+        curbNorth.position.set(bx, 0.16, bz - bSize / 2 + 0.175);
+        curbNorth.receiveShadow = true;
+        const curbSouth = curbNorth.clone();
+        curbSouth.position.z = bz + bSize / 2 - 0.175;
+
+        const curbWest = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.32, bSize), mats.curbMat);
+        curbWest.position.set(bx - bSize / 2 + 0.175, 0.16, bz);
+        curbWest.receiveShadow = true;
+        const curbEast = curbWest.clone();
+        curbEast.position.x = bx + bSize / 2 - 0.175;
+
+        root.add(sw, curbNorth, curbSouth, curbWest, curbEast);
 
         // Street Lamps on 2 corners of each block
         const lamp1 = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 4.8, 6), mats.lampPostMat);

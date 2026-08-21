@@ -4,6 +4,7 @@ import { InputManager } from '../engine/InputManager';
 import { AudioSystem } from '../engine/AudioSystem';
 import { ParticleManager } from '../effects/ParticleManager';
 import { CityData } from '../world/CityBuilder';
+import { getDesertDuneHeight } from '../world/FarmlandBuilder';
 import { VEHICLE_CATALOG, VehicleInfo, getVehicleById } from './VehicleCatalog';
 
 export class PlayerCar {
@@ -143,6 +144,8 @@ export class PlayerCar {
       return;
     }
 
+    const isInDesert = this.position.x >= 50 && this.position.z <= -50;
+
     // Handle Boost
     this.isBoosting = this.input.state.boost && this.boost > 0 && this.speed > 5;
     if (this.isBoosting) {
@@ -152,13 +155,23 @@ export class PlayerCar {
     }
     this.audio.setNitro(this.isBoosting);
 
-    // Handle Drift
+    // Handle Drift & Sand Friction
     this.isDrifting = this.input.state.drift && Math.abs(this.speed) > 10;
     const isHardBraking = this.input.state.backward && this.speed > 8;
     this.audio.setTireSkid(this.isDrifting || isHardBraking, this.isDrifting ? 1.0 : 0.6);
 
-    if (this.isDrifting) {
-      // Emit tire smoke & skid marks
+    if (isInDesert && Math.abs(this.speed) > 5) {
+      const carVel = new THREE.Vector3(
+        -Math.sin(this.heading) * this.speed,
+        0,
+        -Math.cos(this.heading) * this.speed
+      );
+      const leftWheelPos = this.position.clone().add(new THREE.Vector3(-0.9, 0, 1.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading));
+      const rightWheelPos = this.position.clone().add(new THREE.Vector3(0.9, 0, 1.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading));
+      this.particles.emitSandRoostertail(leftWheelPos, carVel, this.isDrifting || this.isBoosting ? 3 : 1);
+      this.particles.emitSandRoostertail(rightWheelPos, carVel, this.isDrifting || this.isBoosting ? 3 : 1);
+    } else if (this.isDrifting) {
+      // Emit tire smoke on asphalt
       const leftWheelPos = this.position.clone().add(new THREE.Vector3(-0.9, 0, 1.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading));
       const rightWheelPos = this.position.clone().add(new THREE.Vector3(0.9, 0, 1.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.heading));
       this.particles.emitTireSmoke(leftWheelPos, 2);
@@ -281,12 +294,33 @@ export class PlayerCar {
     // Check Building Collisions
     this.checkBuildingCollisions();
 
-    // Visual Mesh updates (Suspension tilt and Wheel rotation)
+    // Visual Mesh updates (Suspension tilt, Dune slope pitch, and Wheel rotation)
     const targetRoll = -steerInput * (Math.abs(this.speed) / this.maxForwardSpeed) * 0.18;
     this.rollAngle = THREE.MathUtils.lerp(this.rollAngle, targetRoll, 10 * dt);
 
-    const targetPitch = (this.input.state.forward ? -0.06 : (this.input.state.backward ? 0.08 : 0));
-    this.pitchAngle = THREE.MathUtils.lerp(this.pitchAngle, targetPitch, 8 * dt);
+    let targetPitch = (this.input.state.forward ? -0.06 : (this.input.state.backward ? 0.08 : 0));
+
+    // Dynamic Dune Slope Pitch Adaptation
+    if (isInDesert && this.isGrounded) {
+      const eps = 1.2;
+      const frontX = this.position.x - Math.sin(this.heading) * eps;
+      const frontZ = this.position.z - Math.cos(this.heading) * eps;
+      const backX = this.position.x + Math.sin(this.heading) * eps;
+      const backZ = this.position.z + Math.cos(this.heading) * eps;
+
+      const hFront = getDesertDuneHeight(frontX, frontZ);
+      const hBack = getDesertDuneHeight(backX, backZ);
+      const dunePitch = -Math.atan2(hFront - hBack, 2 * eps);
+      targetPitch += dunePitch;
+
+      // High-speed crest jump launch!
+      if (this.speed > 16 && (hFront - hBack) < -0.8) {
+        this.verticalSpeed = Math.max(this.verticalSpeed, (this.speed / 28) * 9.0);
+        this.isGrounded = false;
+      }
+    }
+
+    this.pitchAngle = THREE.MathUtils.lerp(this.pitchAngle, targetPitch, 10 * dt);
 
     this.meshes.root.position.copy(this.position);
     this.meshes.root.rotation.set(this.pitchAngle, this.heading, this.rollAngle);
@@ -306,6 +340,12 @@ export class PlayerCar {
       this.position.z <= this.cityData.cityBounds.maxZ;
 
     let groundY = inIsland ? 0.4 : this.cityData.waterLevel - 5.0;
+
+    // Check Desert Sand Dune Elevation!
+    if (this.position.x >= 50 && this.position.z <= -50) {
+      const duneH = getDesertDuneHeight(this.position.x, this.position.z);
+      groundY = Math.max(groundY, 0.4 + duneH);
+    }
 
     // Check if on top of any container, pier, boardwalk, or building collider
     for (let col of this.cityData.colliders) {

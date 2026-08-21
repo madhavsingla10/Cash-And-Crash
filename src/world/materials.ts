@@ -21,6 +21,13 @@ export interface WorldMaterials {
   treeMat: THREE.MeshStandardMaterial;
   trunkMat: THREE.MeshStandardMaterial;
   fenceMat: THREE.MeshStandardMaterial;
+  curbMat: THREE.MeshStandardMaterial;
+  crosswalkMat: THREE.MeshBasicMaterial;
+  whiteLineMat: THREE.MeshBasicMaterial;
+  trafficRedMat: THREE.MeshBasicMaterial;
+  trafficYellowMat: THREE.MeshBasicMaterial;
+  trafficGreenMat: THREE.MeshBasicMaterial;
+  busGlassMat: THREE.MeshStandardMaterial;
   windowTexture: THREE.CanvasTexture;
   buildingPalettes: number[];
   houseColors: number[];
@@ -78,16 +85,19 @@ export function createWorldMaterials(): WorldMaterials {
   tileTexture.repeat.set(6, 6);
 
   return {
+    // Wet Asphalt material matching webgpu_generator_city.html
     asphaltMat: new THREE.MeshStandardMaterial({
-      color: 0x14161d,
-      roughness: 0.85,
+      color: 0x11141b,
+      roughness: 0.28,
+      metalness: 0.22,
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnits: -1
     }),
-    sidewalkMat: new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 }),
+    sidewalkMat: new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.65 }),
+    curbMat: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.55 }),
     roadMarkMat: new THREE.MeshBasicMaterial({
-      color: 0xffcc00,
+      color: 0xfbbf24,
       polygonOffset: true,
       polygonOffsetFactor: -3,
       polygonOffsetUnits: -3
@@ -116,6 +126,28 @@ export function createWorldMaterials(): WorldMaterials {
     treeMat: new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.8 }),
     trunkMat: new THREE.MeshStandardMaterial({ color: 0x4a3728, roughness: 0.9 }),
     fenceMat: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }),
+    crosswalkMat: new THREE.MeshBasicMaterial({
+      color: 0xf8fafc,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3
+    }),
+    whiteLineMat: new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3
+    }),
+    trafficRedMat: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
+    trafficYellowMat: new THREE.MeshBasicMaterial({ color: 0xf59e0b }),
+    trafficGreenMat: new THREE.MeshBasicMaterial({ color: 0x10b981 }),
+    busGlassMat: new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.1,
+      metalness: 0.9,
+      transparent: true,
+      opacity: 0.5
+    }),
     windowTexture,
     buildingPalettes: [
       0x1e293b, 0x0f172a, 0x1e1b4b, 0x172554, 0x042f2e, 0x311042, 0x2e1065, 0x334155, 0x1f2937, 0x111827

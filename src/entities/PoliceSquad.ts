@@ -4,6 +4,7 @@ import { PlayerCar } from './PlayerCar';
 import { ParticleManager } from '../effects/ParticleManager';
 import { AudioSystem } from '../engine/AudioSystem';
 import { CityData } from '../world/CityBuilder';
+import { getDesertDuneHeight } from '../world/FarmlandBuilder';
 
 export type PoliceType = 'cruiser' | 'interceptor' | 'swat' | 'chopper';
 
@@ -475,7 +476,13 @@ export class PoliceSquad {
         continue;
       }
 
-      // Update Mesh Transform
+      // Update Mesh Transform & Desert Dune Elevation
+      let copGroundY = 0.4;
+      if (cop.position.x >= 50 && cop.position.z <= -50) {
+        copGroundY = 0.4 + getDesertDuneHeight(cop.position.x, cop.position.z);
+      }
+      cop.position.y = copGroundY;
+
       cop.meshes.root.position.copy(cop.position);
       cop.meshes.root.rotation.y = cop.heading;
 

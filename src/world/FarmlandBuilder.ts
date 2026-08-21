@@ -2,6 +2,56 @@ import * as THREE from 'three';
 import { BuildingCollider, StuntRamp } from './types';
 import { WorldMaterials } from './materials';
 
+const SAND_HILLS = [
+  { x: -75, z: 65, radius: 18, height: 6.2 },
+  { x: -45, z: 75, radius: 15, height: 5.4 },
+  { x: -15, z: 65, radius: 16, height: 5.6 },
+  { x: 15, z: 75, radius: 14, height: 4.8 },
+  { x: -85, z: 35, radius: 18, height: 6.4 },
+  { x: -85, z: -15, radius: 16, height: 5.8 },
+  { x: -85, z: -55, radius: 17, height: 6.0 },
+  { x: -40, z: -20, radius: 14, height: 4.5 },
+  { x: -10, z: 15, radius: 15, height: 5.0 },
+  { x: -5, z: -60, radius: 16, height: 5.5 },
+  { x: 30, z: 35, radius: 15, height: 5.2 },
+  { x: -50, z: 40, radius: 14, height: 4.8 }
+];
+
+export function getDesertDuneHeight(worldX: number, worldZ: number): number {
+  const localX = worldX - 175;
+  const localZ = worldZ + 175;
+
+  if (localX < -120 || localX > 120 || localZ < -120 || localZ > 120) {
+    return 0;
+  }
+
+  let h = 0.1;
+  if (localX < 30) {
+    const windDist = localX * 0.707 + localZ * 0.707;
+    const wave = Math.sin(windDist * 0.08) * 3.2 + Math.cos(localX * 0.05 - localZ * 0.09) * 2.0;
+    const barchan = Math.max(0, Math.sin(localX * 0.12 + 0.5) * Math.cos(localZ * 0.12)) * 4.5;
+    h = Math.max(0.1, wave + barchan);
+  }
+
+  for (let sh of SAND_HILLS) {
+    const dx = localX - sh.x;
+    const dz = localZ - sh.z;
+    const distSq = dx * dx + dz * dz;
+    if (distSq < sh.radius * sh.radius) {
+      const dist = Math.sqrt(distSq);
+      const hillH = (1 - dist / sh.radius) * sh.height;
+      h = Math.max(h, hillH);
+    }
+  }
+
+  const edgeDist = Math.min(120 - Math.abs(localX), 120 - Math.abs(localZ));
+  if (edgeDist < 20) {
+    h *= Math.max(0, edgeDist / 20);
+  }
+
+  return h;
+}
+
 export class FarmlandBuilder {
   public static buildFarmland(
     root: THREE.Group,
@@ -12,392 +62,377 @@ export class FarmlandBuilder {
     const farmGroup = new THREE.Group();
     farmGroup.position.set(175, 0, -175);
 
-    // -------------------------------------------------------------
-    // 1. VAST NATURAL MEADOW & SAND TERRAIN
-    // -------------------------------------------------------------
-    const sandMat = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.95 });
-    const farmMeadowGrassMat = new THREE.MeshStandardMaterial({ color: 0x4a5d23, roughness: 0.95 });
+    // =============================================================
+    // 1. GEOLOGICAL STRATIFIED SAND & CANYON MATERIALS
+    // =============================================================
+    const sandMat = new THREE.MeshStandardMaterial({ color: 0xdeb887, roughness: 0.95 });
+    const darkSandMat = new THREE.MeshStandardMaterial({ color: 0xc89f68, roughness: 0.9 });
+    const sandstoneStrata1 = new THREE.MeshStandardMaterial({ color: 0xb56547, roughness: 0.85 });
+    const sandstoneStrata2 = new THREE.MeshStandardMaterial({ color: 0xd48b6a, roughness: 0.85 });
+    const sandstoneStrata3 = new THREE.MeshStandardMaterial({ color: 0xedd59e, roughness: 0.8 });
+    const fertileSoilMat = new THREE.MeshStandardMaterial({ color: 0x3d2614, roughness: 0.95 });
+    const oasisWaterMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.08, metalness: 0.9, transparent: true, opacity: 0.92 });
+    const palmLeafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.65 });
+    const cactusMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.75 });
+    const sunflowerMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 });
+    const sunflowerCenterMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+    const mirrorMat = new THREE.MeshStandardMaterial({ color: 0xe0f2fe, metalness: 0.95, roughness: 0.05 });
 
-    // Main fertile sand & meadow ground slab
-    const farmGround = new THREE.Mesh(
-      new THREE.PlaneGeometry(210, 210),
-      farmMeadowGrassMat
-    );
-    farmGround.rotation.x = -Math.PI / 2;
-    farmGround.position.set(-10, 0.02, 10);
-    farmGround.receiveShadow = true;
-    farmGroup.add(farmGround);
-
-    // Sand Ground Layer across the dunes and trails
-    const sandGround = new THREE.Mesh(
-      new THREE.PlaneGeometry(200, 200),
+    // Main Sand Ground Base
+    const baseGround = new THREE.Mesh(
+      new THREE.PlaneGeometry(240, 240),
       sandMat
     );
-    sandGround.rotation.x = -Math.PI / 2;
-    sandGround.position.set(-10, 0.025, 10);
-    sandGround.receiveShadow = true;
-    farmGroup.add(sandGround);
+    baseGround.rotation.x = -Math.PI / 2;
+    baseGround.position.set(0, 0.08, 0);
+    baseGround.receiveShadow = true;
+    farmGroup.add(baseGround);
 
-    // -------------------------------------------------------------
-    // 2. SMALL ROLLING SAND HILLS & DUNES (Drivable Off-Road Mounds)
-    // -------------------------------------------------------------
-    // Locations for small rolling sand hills along the border and field corners
-    const sandHills = [
-      // Border Sand Dunes (where road was removed: X ≈ -70 to -10, Z ≈ 60 to 90)
-      { x: -75, z: 65, radius: 12, height: 2.8 },
-      { x: -55, z: 75, radius: 10, height: 2.2 },
-      { x: -35, z: 65, radius: 11, height: 2.5 },
-      { x: -15, z: 75, radius: 9, height: 2.0 },
-      { x: 5, z: 65, radius: 10, height: 2.3 },
-      { x: 25, z: 75, radius: 8, height: 1.8 },
-      { x: -85, z: 35, radius: 12, height: 2.6 },
-      { x: -85, z: 15, radius: 10, height: 2.2 },
-      { x: -85, z: -15, radius: 11, height: 2.4 },
-      { x: -85, z: -45, radius: 9, height: 1.9 },
-      // Inner Field Dunes
-      { x: -20, z: 35, radius: 8, height: 1.6 },
-      { x: 0, z: 35, radius: 9, height: 1.8 },
-      { x: 20, z: 35, radius: 8, height: 1.5 },
-      { x: -35, z: -10, radius: 7, height: 1.4 },
-      { x: 60, z: -60, radius: 10, height: 2.2 },
-      { x: 45, z: -75, radius: 9, height: 1.9 }
-    ];
+    // =============================================================
+    // 2. AEOLIAN GEOMORPHOLOGY: BARCHAN DUNES & PARABOLIC SAND WAVES
+    // =============================================================
+    const duneGeo = new THREE.PlaneGeometry(240, 240, 48, 48);
+    duneGeo.rotateX(-Math.PI / 2);
+    const posAttr = duneGeo.attributes.position;
 
-    for (let sh of sandHills) {
-      // Smooth low-poly dome sand hill
-      const hillGeo = new THREE.CylinderGeometry(0.5, sh.radius, sh.height, 14);
+    for (let i = 0; i < posAttr.count; i++) {
+      const vx = posAttr.getX(i);
+      const vz = posAttr.getZ(i);
+      const h = getDesertDuneHeight(vx + 175, vz - 175);
+      posAttr.setY(i, h + 0.09);
+    }
+    duneGeo.computeVertexNormals();
+
+    const duneMesh = new THREE.Mesh(duneGeo, darkSandMat);
+    duneMesh.receiveShadow = true;
+    duneMesh.castShadow = true;
+    farmGroup.add(duneMesh);
+
+    // 12 Prominent Sculpted Barchan Sand Hills
+    for (let sh of SAND_HILLS) {
+      const hillGeo = new THREE.CylinderGeometry(0.8, sh.radius, sh.height, 18);
       const hillMesh = new THREE.Mesh(hillGeo, sandMat);
-      hillMesh.position.set(sh.x, sh.height / 2, sh.z);
+      hillMesh.position.set(sh.x, sh.height / 2 + 0.1, sh.z);
       hillMesh.receiveShadow = true;
       hillMesh.castShadow = true;
       farmGroup.add(hillMesh);
 
-      // Low-profile Stunt Ramp for jumping off the sand hill
+      // Stunt launch ramp on each dune
       ramps.push({
         position: new THREE.Vector3(175 + sh.x, 0, -175 + sh.z),
-        rotationY: Math.random() * Math.PI,
-        width: sh.radius * 1.2,
-        length: sh.radius * 1.5,
+        rotationY: Math.random() * Math.PI * 2,
+        width: sh.radius * 1.3,
+        length: sh.radius * 1.6,
         height: sh.height
       });
     }
 
-    // -------------------------------------------------------------
-    // 3. EVS & BIO-HYDROLOGY (Canals & Footbridges)
-    // -------------------------------------------------------------
-    const canalWaterMat = new THREE.MeshStandardMaterial({
-      color: 0x0077b6,
-      roughness: 0.15,
-      metalness: 0.8,
-      transparent: true,
-      opacity: 0.85
-    });
-    const canal = new THREE.Mesh(new THREE.PlaneGeometry(6, 130), canalWaterMat);
-    canal.rotation.x = -Math.PI / 2;
-    canal.position.set(38, 0.035, 0);
-    farmGroup.add(canal);
+    // =============================================================
+    // 3. STRATIFIED SEDIMENTARY CANYON MESAS & NATURAL ARCH BRIDGE
+    // =============================================================
+    const canyonMesas = [
+      { x: -75, z: -75, w: 32, d: 32, h: 16 },
+      { x: -20, z: -85, w: 42, d: 24, h: 20 },
+      { x: -85, z: 20, w: 26, d: 45, h: 14 },
+      { x: -80, z: 80, w: 35, d: 35, h: 18 },
+      { x: 80, z: -80, w: 30, d: 30, h: 12 }
+    ];
 
-    for (let bz of [-40, 0, 40]) {
-      const bridge = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 6), mats.woodPlankMat);
-      bridge.position.set(38, 0.35, bz);
-      bridge.castShadow = true;
-      farmGroup.add(bridge);
-    }
+    for (let cm of canyonMesas) {
+      // 3-Tier Geological Stratification
+      const tier1H = cm.h * 0.45; // Terracotta shale base
+      const tier2H = cm.h * 0.35; // Golden sandstone mid
+      const tier3H = cm.h * 0.20; // Capstone
 
-    // -------------------------------------------------------------
-    // 4. BOTANY & CROPS (Wheat, Tilled Soil, Pumpkins)
-    // -------------------------------------------------------------
-    // A. Golden Ripe Wheat Field
-    const wheatPlot = new THREE.Mesh(new THREE.BoxGeometry(45, 0.3, 45), mats.wheatMat);
-    wheatPlot.position.set(-42, 0.2, -42);
-    wheatPlot.receiveShadow = true;
-    farmGroup.add(wheatPlot);
+      const t1 = new THREE.Mesh(new THREE.BoxGeometry(cm.w, tier1H, cm.d), sandstoneStrata1);
+      t1.position.set(cm.x, tier1H / 2, cm.z);
+      t1.castShadow = true;
+      t1.receiveShadow = true;
 
-    for (let rz = -60; rz <= -24; rz += 4) {
-      const ridge = new THREE.Mesh(
-        new THREE.BoxGeometry(42, 0.25, 1.8),
-        new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.9 })
-      );
-      ridge.position.set(-42, 0.45, rz);
-      farmGroup.add(ridge);
-    }
+      const t2 = new THREE.Mesh(new THREE.BoxGeometry(cm.w * 0.85, tier2H, cm.d * 0.85), sandstoneStrata2);
+      t2.position.set(cm.x, tier1H + tier2H / 2, cm.z);
+      t2.castShadow = true;
+      t2.receiveShadow = true;
 
-    // B. Dark Tilled Humus Soil
-    const tilledPlot = new THREE.Mesh(
-      new THREE.BoxGeometry(45, 0.3, 45),
-      new THREE.MeshStandardMaterial({ color: 0x2b1704, roughness: 0.98 })
-    );
-    tilledPlot.position.set(42, 0.2, -42);
-    farmGroup.add(tilledPlot);
+      const t3 = new THREE.Mesh(new THREE.BoxGeometry(cm.w * 0.7, tier3H, cm.d * 0.7), sandstoneStrata3);
+      t3.position.set(cm.x, tier1H + tier2H + tier3H / 2, cm.z);
+      t3.castShadow = true;
+      t3.receiveShadow = true;
 
-    for (let rz = -60; rz <= -24; rz += 4.5) {
-      const furrow = new THREE.Mesh(
-        new THREE.BoxGeometry(42, 0.2, 2.0),
-        new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.95 })
-      );
-      furrow.position.set(42, 0.4, rz);
-
-      const sprout = new THREE.Mesh(
-        new THREE.BoxGeometry(40, 0.15, 0.5),
-        new THREE.MeshStandardMaterial({ color: 0x52b788 })
-      );
-      sprout.position.set(42, 0.55, rz);
-      farmGroup.add(furrow, sprout);
-    }
-
-    // C. Pumpkin & Squash Patch
-    const strawPlot = new THREE.Mesh(
-      new THREE.BoxGeometry(45, 0.25, 45),
-      new THREE.MeshStandardMaterial({ color: 0xc89f68, roughness: 0.9 })
-    );
-    strawPlot.position.set(-42, 0.18, 5);
-    farmGroup.add(strawPlot);
-
-    const pumpkinMat = new THREE.MeshStandardMaterial({ color: 0xf77f00, roughness: 0.5 });
-    for (let p = 0; p < 16; p++) {
-      const pumpkin = new THREE.Mesh(new THREE.DodecahedronGeometry(1.1), pumpkinMat);
-      pumpkin.scale.set(1.2, 0.9, 1.2);
-      const px = -58 + (p % 4) * 10 + (Math.random() - 0.5) * 2;
-      const pz = -10 + Math.floor(p / 4) * 10 + (Math.random() - 0.5) * 2;
-      pumpkin.position.set(px, 0.9, pz);
-      pumpkin.castShadow = true;
-      farmGroup.add(pumpkin);
-    }
-
-    // -------------------------------------------------------------
-    // 5. GREENHOUSES & SOLAR ARRAYS
-    // -------------------------------------------------------------
-    const greenhouseGlassMat = new THREE.MeshStandardMaterial({
-      color: 0xe0f2fe,
-      roughness: 0.1,
-      metalness: 0.3,
-      transparent: true,
-      opacity: 0.7
-    });
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
-
-    for (let gx of [24, 48]) {
-      const greenhouse = new THREE.Group();
-      greenhouse.position.set(gx, 0, 42);
-
-      const domeGeo = new THREE.CylinderGeometry(6, 6, 28, 16, 1, false, 0, Math.PI);
-      const dome = new THREE.Mesh(domeGeo, greenhouseGlassMat);
-      dome.rotation.x = Math.PI / 2;
-      dome.rotation.z = Math.PI / 2;
-      greenhouse.add(dome);
-
-      for (let rz = -12; rz <= 12; rz += 6) {
-        const rib = new THREE.Mesh(new THREE.TorusGeometry(6.1, 0.15, 6, 16, Math.PI), frameMat);
-        rib.rotation.y = Math.PI / 2;
-        rib.position.set(0, 0, rz);
-        greenhouse.add(rib);
-      }
-
-      farmGroup.add(greenhouse);
+      farmGroup.add(t1, t2, t3);
 
       colliders.push({
         box: new THREE.Box3().setFromCenterAndSize(
-          new THREE.Vector3(175 + gx, 3, -175 + 42),
-          new THREE.Vector3(12, 6, 28)
+          new THREE.Vector3(175 + cm.x, cm.h / 2, -175 + cm.z),
+          new THREE.Vector3(cm.w, cm.h, cm.d)
         ),
         type: 'building',
-        height: 6
+        height: cm.h
+      });
+
+      ramps.push({
+        position: new THREE.Vector3(175 + cm.x + cm.w * 0.5 + 4, 0, -175 + cm.z),
+        rotationY: Math.PI / 2,
+        width: 10,
+        length: 14,
+        height: cm.h * 0.5
       });
     }
 
-    // Solar PV Array
-    const solarMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.1 });
-    for (let sp = -18; sp <= 18; sp += 9) {
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(6, 0.2, 4), solarMat);
-      panel.position.set(sp, 2.2, -68);
-      panel.rotation.x = -Math.PI / 6;
-      panel.castShadow = true;
+    // Natural Sandstone Arch Bridge (Drive Under & Over!)
+    const archGroup = new THREE.Group();
+    archGroup.position.set(-50, 0, -85);
 
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.2, 6), frameMat);
-      leg.position.set(sp, 1.1, -68);
-      farmGroup.add(panel, leg);
+    const pillarL = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3.5, 12, 10), sandstoneStrata1);
+    pillarL.position.set(-9, 6, 0);
+    pillarL.castShadow = true;
+
+    const pillarR = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 3.5, 12, 10), sandstoneStrata1);
+    pillarR.position.set(9, 6, 0);
+    pillarR.castShadow = true;
+
+    const archSpan = new THREE.Mesh(new THREE.BoxGeometry(22, 2.5, 8), sandstoneStrata2);
+    archSpan.position.set(0, 12, 0);
+    archSpan.castShadow = true;
+
+    archGroup.add(pillarL, pillarR, archSpan);
+    farmGroup.add(archGroup);
+
+    // =============================================================
+    // 4. PARABOLIC SOLAR CONCENTRATOR FIELD (CSP CLEAN ENERGY)
+    // =============================================================
+    const solarCSPGroup = new THREE.Group();
+    solarCSPGroup.position.set(-15, 0, 45);
+
+    // Parabolic Trough Mirrors
+    for (let row = -2; row <= 2; row++) {
+      for (let col = -1; col <= 1; col++) {
+        const mirrorTrough = new THREE.Mesh(
+          new THREE.CylinderGeometry(2.2, 2.2, 8, 16, 1, true, 0, Math.PI),
+          mirrorMat
+        );
+        mirrorTrough.rotation.x = Math.PI / 2;
+        mirrorTrough.rotation.z = Math.PI / 2;
+        mirrorTrough.position.set(col * 10, 1.8, row * 10);
+        mirrorTrough.castShadow = true;
+
+        // Focal Receiver Pipe
+        const pipe = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xffedd5 }) // Glowing heated molten salt
+        );
+        pipe.rotation.z = Math.PI / 2;
+        pipe.position.set(col * 10, 2.8, row * 10);
+
+        solarCSPGroup.add(mirrorTrough, pipe);
+      }
     }
 
-    // -------------------------------------------------------------
-    // 6. GAMBREL RED BARN & GRAIN SILO
-    // -------------------------------------------------------------
-    const barnGroup = new THREE.Group();
-    barnGroup.position.set(-42, 0, -2);
-
-    const barnW = 22;
-    const barnH = 10;
-    const barnD = 32;
-
-    const barnBody = new THREE.Mesh(
-      new THREE.BoxGeometry(barnW, barnH, barnD),
-      new THREE.MeshStandardMaterial({ color: 0x9e2a2b, roughness: 0.7 })
+    // Central Solar Thermal Collector Tower
+    const solarTower = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.2, 2.8, 22, 12),
+      new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.85 })
     );
-    barnBody.position.y = barnH / 2;
-    barnBody.castShadow = true;
-    barnBody.receiveShadow = true;
+    solarTower.position.set(0, 11, 0);
+    solarTower.castShadow = true;
 
-    const gambrelGeo = new THREE.CylinderGeometry(13.5, 13.5, barnD, 6, 1, false, 0, Math.PI);
-    const barnRoof = new THREE.Mesh(
-      gambrelGeo,
-      new THREE.MeshStandardMaterial({ color: 0x540b0e, roughness: 0.55 })
+    const moltenReceiver = new THREE.Mesh(
+      new THREE.SphereGeometry(2.0, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xffaa00 }) // 800°C Glowing Thermal Receiver
     );
-    barnRoof.rotation.x = Math.PI / 2;
-    barnRoof.rotation.z = Math.PI / 2;
-    barnRoof.position.y = barnH;
-    barnRoof.castShadow = true;
+    moltenReceiver.position.set(0, 22, 0);
 
-    const cupola = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.5, 3.5), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-    cupola.position.set(0, barnH + 6.5, 0);
-    const cupolaRoof = new THREE.Mesh(new THREE.ConeGeometry(2.6, 2.2, 4), new THREE.MeshStandardMaterial({ color: 0x540b0e }));
-    cupolaRoof.rotation.y = Math.PI / 4;
-    cupolaRoof.position.set(0, barnH + 9, 0);
-    const rooster = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.0, 0.2), mats.neonGoldMat);
-    rooster.position.set(0, barnH + 10.6, 0);
+    solarCSPGroup.add(solarTower, moltenReceiver);
+    farmGroup.add(solarCSPGroup);
 
-    const barnDoorL = new THREE.Mesh(new THREE.BoxGeometry(4.5, 6.5, 0.3), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-    barnDoorL.position.set(-2.6, 3.25, barnD / 2 + 0.16);
-    const barnDoorR = barnDoorL.clone();
-    barnDoorR.position.x = 2.6;
+    // =============================================================
+    // 5. HYDROLOGICAL DESERT OASIS & PALM TREES
+    // =============================================================
+    const oasisGroup = new THREE.Group();
+    oasisGroup.position.set(-35, 0, -35);
 
-    barnGroup.add(barnBody, barnRoof, cupola, cupolaRoof, rooster, barnDoorL, barnDoorR);
-    farmGroup.add(barnGroup);
-
-    colliders.push({
-      box: new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(175 - 42, (barnH + 8) / 2, -175 - 2),
-        new THREE.Vector3(barnW + 2, barnH + 8, barnD + 2)
-      ),
-      type: 'building',
-      height: barnH + 8
-    });
-
-    const siloMat = new THREE.MeshStandardMaterial({ color: 0xcfd8dc, metalness: 0.7, roughness: 0.35 });
-    const silo = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 24, 18), siloMat);
-    silo.position.set(-62, 12, -2);
-    silo.castShadow = true;
-
-    const siloDome = new THREE.Mesh(new THREE.SphereGeometry(5.0, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), siloMat);
-    siloDome.position.set(-62, 24, -2);
-
-    const augerPipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.35, 0.35, 16, 6),
-      new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 })
+    const oasisPool = new THREE.Mesh(
+      new THREE.CylinderGeometry(15, 16, 0.4, 24),
+      oasisWaterMat
     );
-    augerPipe.rotation.z = Math.PI / 4;
-    augerPipe.position.set(-52, 16, -2);
+    oasisPool.position.y = 0.15;
+    oasisGroup.add(oasisPool);
 
-    farmGroup.add(silo, siloDome, augerPipe);
+    const palmAngles = [0, Math.PI * 0.35, Math.PI * 0.7, Math.PI * 1.1, Math.PI * 1.5, Math.PI * 1.85];
+    for (let pa of palmAngles) {
+      const palm = new THREE.Group();
+      const px = Math.cos(pa) * 17.5;
+      const pz = Math.sin(pa) * 17.5;
+      palm.position.set(px, 0, pz);
 
-    colliders.push({
-      box: new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(175 - 62, 12, -175 - 2),
-        new THREE.Vector3(10, 24, 10)
-      ),
-      type: 'building',
-      height: 24
-    });
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.65, 9.5, 8),
+        new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 })
+      );
+      trunk.position.set(0.7, 4.75, 0);
+      trunk.rotation.z = -0.15;
+      trunk.castShadow = true;
+      palm.add(trunk);
 
-    // -------------------------------------------------------------
-    // 7. TRACTOR & HOMESTEAD
-    // -------------------------------------------------------------
-    const tractor = new THREE.Group();
-    tractor.position.set(-18, 0, 15);
-    tractor.rotation.y = -Math.PI / 4;
+      for (let f = 0; f < 8; f++) {
+        const frondAngle = (f * Math.PI) / 4;
+        const frond = new THREE.Mesh(new THREE.ConeGeometry(0.7, 6.0, 4), palmLeafMat);
+        frond.rotation.x = Math.PI / 3;
+        frond.rotation.y = frondAngle;
+        frond.position.set(0.7, 9.5, 0);
+        frond.castShadow = true;
+        palm.add(frond);
+      }
+      oasisGroup.add(palm);
+    }
+    farmGroup.add(oasisGroup);
 
-    const tractorGreenMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.4 });
-    const tractorYellowMat = new THREE.MeshStandardMaterial({ color: 0xffb703, roughness: 0.4 });
-    const tireMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+    // =============================================================
+    // 6. XEROPHYTIC VEGETATION: 12 SAGUARO CACTI
+    // =============================================================
+    const cactusPositions = [
+      [-60, -50], [-70, -30], [-50, 10], [-65, 45], [-35, 65],
+      [-15, -60], [-5, -40], [10, -75], [-45, -75], [-10, 75],
+      [-25, -15], [5, 20]
+    ];
 
-    const hood = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 3.8), tractorGreenMat);
-    hood.position.set(0, 1.6, 0.8);
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.4, 2.4), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-    cab.position.set(0, 2.6, -1.2);
-    const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x000000 }));
-    exhaust.position.set(0.9, 3.2, 1.8);
+    for (let [cx, cz] of cactusPositions) {
+      const cactus = new THREE.Group();
+      cactus.position.set(cx, 0, cz);
 
-    const rearWheelL = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.9, 12), tireMat);
-    rearWheelL.rotation.z = Math.PI / 2;
-    rearWheelL.position.set(-1.6, 1.6, -1.2);
-    const rearRimL = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.92, 10), tractorYellowMat);
-    rearRimL.rotation.z = Math.PI / 2;
-    rearRimL.position.set(-1.6, 1.6, -1.2);
+      const stemH = 6 + Math.random() * 4;
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, stemH, 10), cactusMat);
+      stem.position.y = stemH / 2;
+      stem.castShadow = true;
+      cactus.add(stem);
 
-    const rearWheelR = rearWheelL.clone();
-    rearWheelR.position.x = 1.6;
-    const rearRimR = rearRimL.clone();
-    rearRimR.position.x = 1.6;
+      const armL1 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.0, 8), cactusMat);
+      armL1.rotation.z = Math.PI / 2;
+      armL1.position.set(-1.0, stemH * 0.55, 0);
+      const armL2 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.5, 8), cactusMat);
+      armL2.position.set(-1.8, stemH * 0.55 + 1.25, 0);
+      cactus.add(armL1, armL2);
 
-    const frontWheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 10), tireMat);
-    frontWheelL.rotation.z = Math.PI / 2;
-    frontWheelL.position.set(-1.3, 0.9, 2.2);
-    const frontWheelR = frontWheelL.clone();
-    frontWheelR.position.x = 1.3;
+      const armR1 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.0, 8), cactusMat);
+      armR1.rotation.z = -Math.PI / 2;
+      armR1.position.set(1.0, stemH * 0.7, 0);
+      const armR2 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.2, 8), cactusMat);
+      armR2.position.set(1.8, stemH * 0.7 + 1.1, 0);
+      cactus.add(armR1, armR2);
 
-    tractor.add(hood, cab, exhaust, rearWheelL, rearRimL, rearWheelR, rearRimR, frontWheelL, frontWheelR);
-    farmGroup.add(tractor);
-
-    // Homestead
-    const homestead = new THREE.Group();
-    homestead.position.set(42, 0, 5);
-    const houseBody = new THREE.Mesh(new THREE.BoxGeometry(16, 7.0, 14), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 }));
-    houseBody.position.y = 3.5;
-    const houseRoof = new THREE.Mesh(new THREE.ConeGeometry(12.5, 4.5, 4), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 }));
-    houseRoof.rotation.y = Math.PI / 4;
-    houseRoof.position.y = 7.0 + 2.25;
-    const chimney = new THREE.Mesh(new THREE.BoxGeometry(1.4, 4.0, 1.4), new THREE.MeshStandardMaterial({ color: 0x7c2d12 }));
-    chimney.position.set(4.5, 9.5, -2);
-    const porch = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 4), mats.woodPlankMat);
-    porch.position.set(0, 0.2, 8.5);
-    const fence = new THREE.Mesh(new THREE.BoxGeometry(24, 0.9, 0.2), mats.fenceMat);
-    fence.position.set(0, 0.45, 12);
-    homestead.add(houseBody, houseRoof, chimney, porch, fence);
-    farmGroup.add(homestead);
-
-    colliders.push({
-      box: new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(175 + 42, 5, -175 + 5),
-        new THREE.Vector3(16, 10, 14)
-      ),
-      type: 'building',
-      height: 10
-    });
-
-    // -------------------------------------------------------------
-    // 8. WINDMILL
-    // -------------------------------------------------------------
-    const windmill = new THREE.Group();
-    windmill.position.set(-62, 0, -62);
-    const towerMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.3 });
-    const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 4.5, 26, 8), towerMat);
-    tower.position.y = 13;
-
-    const fanCenter = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 8), towerMat);
-    fanCenter.position.set(0, 26, 2.2);
-
-    for (let b = 0; b < 8; b++) {
-      const bladeAngle = (b * Math.PI) / 4;
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 11, 0.1), towerMat);
-      blade.rotation.z = bladeAngle;
-      blade.position.set(5.5 * Math.sin(bladeAngle), 26 + 5.5 * Math.cos(bladeAngle), 2.2);
-      windmill.add(blade);
+      farmGroup.add(cactus);
     }
 
-    const tailRudder = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 5.0), new THREE.MeshStandardMaterial({ color: 0xd90429 }));
-    tailRudder.position.set(0, 26, -3.5);
+    // =============================================================
+    // 7. PREHISTORIC FOSSIL RIBCAGE TUNNEL
+    // =============================================================
+    const fossilTunnel = new THREE.Group();
+    fossilTunnel.position.set(-65, 0, 0);
+    const boneMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.6 });
 
-    const waterWell = new THREE.Mesh(new THREE.CylinderGeometry(4.0, 4.0, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-    waterWell.position.set(0, 1.0, 0);
+    for (let r = 0; r < 7; r++) {
+      const zPos = -15 + r * 5;
+      const ribL = new THREE.Mesh(new THREE.TorusGeometry(4.8, 0.45, 6, 12, Math.PI * 0.7), boneMat);
+      ribL.position.set(-1.5, 0, zPos);
+      ribL.rotation.y = Math.PI / 2;
+      ribL.rotation.z = -Math.PI / 2;
+      ribL.castShadow = true;
 
-    windmill.add(tower, fanCenter, tailRudder, waterWell);
-    farmGroup.add(windmill);
+      const ribR = ribL.clone();
+      ribR.position.x = 1.5;
+      ribR.rotation.z = Math.PI / 2;
 
-    colliders.push({
-      box: new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(175 - 62, 13, -175 - 62),
-        new THREE.Vector3(9, 26, 9)
-      ),
-      type: 'building',
-      height: 26
+      fossilTunnel.add(ribL, ribR);
+    }
+    farmGroup.add(fossilTunnel);
+
+    // =============================================================
+    // 8. PETROLEUM OIL PUMPJACK OUTPOST
+    // =============================================================
+    const oilOutpost = new THREE.Group();
+    oilOutpost.position.set(-25, 0, 80);
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.3 });
+    const rustMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.8 });
+
+    const pumpBase = new THREE.Mesh(new THREE.BoxGeometry(6, 2.5, 12), steelMat);
+    pumpBase.position.y = 1.25;
+    pumpBase.castShadow = true;
+
+    const samsonPost = new THREE.Mesh(new THREE.ConeGeometry(3, 8, 4), steelMat);
+    samsonPost.position.set(0, 6.5, 0);
+    samsonPost.castShadow = true;
+
+    const walkingBeam = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 14), rustMat);
+    walkingBeam.position.set(0, 10.5, 0);
+    walkingBeam.rotation.x = -0.2;
+    walkingBeam.castShadow = true;
+
+    const horseHead = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 1.2, 8, 1, false, 0, Math.PI), steelMat);
+    horseHead.rotation.z = Math.PI / 2;
+    horseHead.position.set(0, 10.5, 7.0);
+
+    oilOutpost.add(pumpBase, samsonPost, walkingBeam, horseHead);
+    farmGroup.add(oilOutpost);
+
+    // =============================================================
+    // 9. AGRICULTURAL CROPS: WHEAT & SUNFLOWER FIELDS
+    // =============================================================
+    const wheatField = new THREE.Mesh(new THREE.BoxGeometry(60, 0.4, 60), mats.wheatMat);
+    wheatField.position.set(45, 0.2, -45);
+    wheatField.receiveShadow = true;
+    farmGroup.add(wheatField);
+
+    for (let rz = -70; rz <= -20; rz += 4.5) {
+      const ridge = new THREE.Mesh(
+        new THREE.BoxGeometry(56, 0.25, 2.2),
+        new THREE.MeshStandardMaterial({ color: 0xca8a04, roughness: 0.9 })
+      );
+      ridge.position.set(45, 0.45, rz);
+      farmGroup.add(ridge);
+    }
+
+    const sunflowerField = new THREE.Mesh(new THREE.BoxGeometry(60, 0.35, 60), fertileSoilMat);
+    sunflowerField.position.set(45, 0.18, 25);
+    sunflowerField.receiveShadow = true;
+    farmGroup.add(sunflowerField);
+
+    for (let sx = 20; sx <= 70; sx += 10) {
+      for (let sz = 0; sz <= 50; sz += 10) {
+        const flower = new THREE.Group();
+        flower.position.set(sx, 0, sz);
+
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 3.2, 6), new THREE.MeshStandardMaterial({ color: 0x15803d }));
+        stem.position.y = 1.6;
+
+        const petals = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.1, 12), sunflowerMat);
+        petals.position.set(0, 3.2, 0);
+        petals.rotation.x = -Math.PI / 4;
+
+        const center = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.15, 12), sunflowerCenterMat);
+        center.position.set(0, 3.25, 0);
+        center.rotation.x = -Math.PI / 4;
+
+        flower.add(stem, petals, center);
+        farmGroup.add(flower);
+      }
+    }
+
+    // Hay Bale Stunt Pyramids
+    const hayBaleMat = new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.95 });
+    for (let b = 0; b < 6; b++) {
+      const bale = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 3.2, 12), hayBaleMat);
+      bale.position.set(55 + (b % 3) * 3.6, 1.8 + Math.floor(b / 3) * 3.2, -15);
+      bale.rotation.z = Math.PI / 2;
+      bale.castShadow = true;
+      farmGroup.add(bale);
+    }
+
+    ramps.push({
+      position: new THREE.Vector3(175 + 58, 0, -175 - 15),
+      rotationY: 0,
+      width: 10,
+      length: 12,
+      height: 4.5
     });
 
     root.add(farmGroup);

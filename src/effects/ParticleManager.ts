@@ -70,6 +70,35 @@ export class ParticleManager {
     }
   }
 
+  public emitSandRoostertail(pos: THREE.Vector3, vel: THREE.Vector3, count: number = 3) {
+    const sandColors = [0xdeb887, 0xd4a373, 0xca8a04, 0xb45309];
+    for (let i = 0; i < count; i++) {
+      const col = sandColors[Math.floor(Math.random() * sandColors.length)];
+      const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.75 });
+      const mesh = new THREE.Mesh(this.smokeGeo, mat);
+      mesh.position.copy(pos).add(new THREE.Vector3(
+        (Math.random() - 0.5) * 0.6,
+        0.15 + Math.random() * 0.2,
+        (Math.random() - 0.5) * 0.6
+      ));
+      const s = 0.5 + Math.random() * 0.5;
+      mesh.scale.set(s, s, s);
+
+      this.scene.add(mesh);
+      this.particles.push({
+        mesh,
+        velocity: new THREE.Vector3(
+          -vel.x * 0.4 + (Math.random() - 0.5) * 4,
+          2.5 + Math.random() * 3.5,
+          -vel.z * 0.4 + (Math.random() - 0.5) * 4
+        ),
+        life: 0,
+        maxLife: 0.65 + Math.random() * 0.4,
+        colorFade: true
+      });
+    }
+  }
+
   public createExplosion(pos: THREE.Vector3, isBig: boolean = false) {
     const count = isBig ? 35 : 20;
     const colors = [0xff2200, 0xff7700, 0xffcc00, 0x333333];

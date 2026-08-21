@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { AudioSystem } from './engine/AudioSystem';
 import { InputManager } from './engine/InputManager';
 import { ParticleManager } from './effects/ParticleManager';
-import { CityBuilder, CityData } from './world/CityBuilder';
+import { CityData } from './world/CityBuilder';
+import { MegaMapBuilder } from './world/megamap/MegaMapBuilder';
 import { PlayerCar } from './entities/PlayerCar';
 import { PoliceSquad } from './entities/PoliceSquad';
 import { MoneyBagsManager } from './entities/MoneyBags';
@@ -77,11 +78,11 @@ class Game {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1e3a5f);
-    // Crystal-clear visibility: Fog only starts at 180m away
-    this.scene.fog = new THREE.Fog(0x1e3a5f, 180, 520);
+    // Crystal-clear visibility across the massive open world
+    this.scene.fog = new THREE.Fog(0x1e3a5f, 320, 1200);
 
-    // Camera
-    this.camera = new THREE.PerspectiveCamera(65, width / height, 0.5, 600);
+    // Camera with deep view distance
+    this.camera = new THREE.PerspectiveCamera(65, width / height, 0.5, 1400);
     this.camera.position.set(0, 8, 14);
 
     // Renderer
@@ -97,13 +98,13 @@ class Game {
     this.scene.add(hemiLight);
 
     const dirLight = new THREE.DirectionalLight(0xfff5e6, 2.2);
-    dirLight.position.set(80, 120, 60);
+    dirLight.position.set(150, 240, 120);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     dirLight.shadow.camera.near = 10;
-    dirLight.shadow.camera.far = 350;
-    const d = 140;
+    dirLight.shadow.camera.far = 700;
+    const d = 320;
     dirLight.shadow.camera.left = -d;
     dirLight.shadow.camera.right = d;
     dirLight.shadow.camera.top = d;
@@ -112,7 +113,7 @@ class Game {
 
     // Fill Light for crystal clear shadows and alleys
     const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.9);
-    fillLight.position.set(-80, 50, -60);
+    fillLight.position.set(-150, 100, -120);
     this.scene.add(fillLight);
 
     window.addEventListener('resize', () => {
@@ -128,7 +129,7 @@ class Game {
     this.audio = new AudioSystem();
     this.input = new InputManager();
     this.particles = new ParticleManager(this.scene);
-    this.cityData = CityBuilder.buildCity(this.scene);
+    this.cityData = MegaMapBuilder.buildMegaWorld(this.scene);
 
     this.player = new PlayerCar(this.scene, this.input, this.audio, this.particles, this.cityData);
 
@@ -186,7 +187,8 @@ class Game {
     this.comboResetTimer = 0;
     this.cameraShake = 0;
 
-    this.player.reset(new THREE.Vector3(32, 0.4, 32));
+    // Start on London Bridge approach avenue
+    this.player.reset(new THREE.Vector3(0, 0.4, -45));
     this.police.reset();
     this.particles.clearAll();
     this.money.setupPickups(this.cityData.moneyLocations);
@@ -305,7 +307,7 @@ class Game {
     const h = this.minimapCanvas.height;
     const cx = w / 2;
     const cy = h / 2;
-    const scale = 0.42; // world to radar scale
+    const scale = 0.16; // World to radar scale for 760m map
 
     ctx.clearRect(0, 0, w, h);
 
@@ -313,15 +315,19 @@ class Game {
     ctx.fillStyle = 'rgba(10, 15, 29, 0.95)';
     ctx.fillRect(0, 0, w, h);
 
-    // City Boundary Rect
+    // World Boundary Rect
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(this.player.heading);
 
-    const mapSpan = 320 * scale;
-    ctx.strokeStyle = 'rgba(0, 255, 200, 0.2)';
+    const mapSpan = 760 * scale;
+    ctx.strokeStyle = 'rgba(0, 255, 200, 0.25)';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-this.player.position.x * scale - mapSpan / 2, -this.player.position.z * scale - mapSpan / 2, mapSpan, mapSpan);
+
+    // Render Central River Indicator
+    ctx.fillStyle = 'rgba(0, 150, 255, 0.15)';
+    ctx.fillRect(-this.player.position.x * scale - mapSpan / 2, -this.player.position.z * scale - (65 * scale) / 2, mapSpan, 65 * scale);
 
     // Render ONLY the 1 Active Money Bag
     if (this.money.activeBagPosition) {

@@ -75,12 +75,12 @@ class Game {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    // Scene
+    // Scene (Bright vibrant metropolis atmosphere)
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1e3a5f);
     this.scene.fog = new THREE.Fog(0x1e3a5f, 220, 800);
 
-    // Camera
+    // Camera (Stable, locked perspective)
     this.camera = new THREE.PerspectiveCamera(65, width / height, 0.5, 1000);
     this.camera.position.set(0, 8, 14);
 
@@ -92,7 +92,7 @@ class Game {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
 
-    // Bright, vibrant atmospheric lighting
+    // Atmospheric lighting
     const hemiLight = new THREE.HemisphereLight(0xe2e8f0, 0x334155, 1.4);
     this.scene.add(hemiLight);
 
@@ -128,6 +128,7 @@ class Game {
     this.input = new InputManager();
     this.particles = new ParticleManager(this.scene);
     this.cityData = CityBuilder.buildCity(this.scene);
+    this.cityData.root.visible = true;
 
     this.player = new PlayerCar(this.scene, this.input, this.audio, this.particles, this.cityData);
 
@@ -510,12 +511,9 @@ class Game {
       // 6. Camera Follow
       this.updateCamera(dt);
     } else {
-      // Menu / GameOver idle rotation
-      const time = this.clock.getElapsedTime() * 0.2;
-      this.camera.position.x = Math.sin(time) * 45;
-      this.camera.position.z = Math.cos(time) * 45;
-      this.camera.position.y = 22;
-      this.camera.lookAt(0, 4, 0);
+      // Menu / GameOver: Stable showcase perspective
+      this.camera.position.set(0, 7.5, 13.5);
+      this.camera.lookAt(0, 1.2, 0);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -523,7 +521,7 @@ class Game {
 
   private updateCamera(dt: number) {
     const behindDist = 9.5;
-    const height = 4.5;
+    const height = 4.2;
 
     const carHeading = this.player.heading;
     const targetCamPos = this.player.position.clone().add(
@@ -534,15 +532,7 @@ class Game {
       )
     );
 
-    // Camera Shake on collisions
-    if (this.cameraShake > 0) {
-      targetCamPos.x += (Math.random() - 0.5) * this.cameraShake * 1.5;
-      targetCamPos.y += (Math.random() - 0.5) * this.cameraShake * 1.5;
-      targetCamPos.z += (Math.random() - 0.5) * this.cameraShake * 1.5;
-      this.cameraShake = Math.max(0, this.cameraShake - dt * 2.5);
-    }
-
-    this.camera.position.lerp(targetCamPos, 8 * dt);
+    this.camera.position.lerp(targetCamPos, Math.min(1.0, 12 * dt));
 
     const lookTarget = this.player.position.clone().add(new THREE.Vector3(0, 1.2, 0));
     this.camera.lookAt(lookTarget);

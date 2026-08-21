@@ -1,11 +1,21 @@
 import * as THREE from 'three';
 import { BuildingCollider } from './types';
 import { WorldMaterials } from './materials';
+import { SkyscraperGenerator, SkyscraperConfig } from './SkyscraperGenerator';
 
 export class DowntownBuilder {
   public static buildDowntown(root: THREE.Group, colliders: BuildingCollider[], mats: WorldMaterials) {
     const blockCenters = [-225, -175, -125, -75, -25, 25, 75, 125, 175, 225];
     const bSize = 34; // 34x34m each block
+
+    const styles: SkyscraperConfig['style'][] = [
+      'gothic-terracotta',
+      'art-deco',
+      'modern-curtain',
+      'cyber-megatower'
+    ];
+
+    let seedCounter = 100;
 
     for (let bx of blockCenters) {
       for (let bz of blockCenters) {
@@ -44,12 +54,14 @@ export class DowntownBuilder {
         root.add(lamp1, lamp2);
 
         // Block Variations:
-        // Type A: 4 Quad High-Rise Towers
-        // Type B: 2 Twin Commercial Towers
-        // Type C: 1 Mega Corporate Skyscraper
+        // Type A: 4 Quad Neo-Gothic Towers
+        // Type B: 2 Twin Art Deco Commercial Towers
+        // Type C: 1 Mega Corporate Skyscraper (up to 145m)
         const blockType = Math.random();
+        seedCounter++;
 
         if (blockType > 0.55) {
+          // Quad Towers
           const subSize = bSize / 2 - 2;
           const offsets = [
             [-subSize / 2 - 1, -subSize / 2 - 1],
@@ -61,31 +73,19 @@ export class DowntownBuilder {
           for (let [ox, oz] of offsets) {
             const posX = bx + ox;
             const posZ = bz + oz;
-            const height = 35 + Math.floor(Math.random() * 65); // 35m to 100m
-            const col = mats.buildingPalettes[Math.floor(Math.random() * mats.buildingPalettes.length)];
+            const height = 45 + Math.floor(Math.random() * 55); // 45m to 100m
+            const style = styles[Math.floor(Math.random() * styles.length)];
 
-            const bMat = new THREE.MeshStandardMaterial({
-              color: col,
-              map: mats.windowTexture,
-              roughness: 0.25,
-              metalness: 0.4
-            });
+            const towerGroup = SkyscraperGenerator.createSkyscraper({
+              seed: seedCounter++,
+              width: subSize,
+              depth: subSize,
+              totalHeight: height,
+              style
+            }, mats);
 
-            const bMesh = new THREE.Mesh(new THREE.BoxGeometry(subSize, height, subSize), bMat);
-            bMesh.position.set(posX, height / 2, posZ);
-            bMesh.castShadow = true;
-            bMesh.receiveShadow = true;
-            root.add(bMesh);
-
-            // Neon crown on tall quad towers
-            if (height > 60) {
-              const crown = new THREE.Mesh(
-                new THREE.BoxGeometry(subSize + 0.5, 1.2, subSize + 0.5),
-                Math.random() > 0.5 ? mats.neonCyanMat : mats.neonPinkMat
-              );
-              crown.position.set(posX, height + 0.6, posZ);
-              root.add(crown);
-            }
+            towerGroup.position.set(posX, 0, posZ);
+            root.add(towerGroup);
 
             colliders.push({
               box: new THREE.Box3().setFromCenterAndSize(
@@ -96,29 +96,28 @@ export class DowntownBuilder {
               height
             });
           }
-        } else if (blockType > 0.2) {
+        } else if (blockType > 0.22) {
+          // Twin Towers
           const twW = bSize - 4;
           const twD = bSize / 2 - 2;
           const offsets = [[0, -twD / 2 - 1], [0, twD / 2 + 1]];
+          const style = styles[Math.floor(Math.random() * styles.length)];
 
           for (let [ox, oz] of offsets) {
             const posX = bx + ox;
             const posZ = bz + oz;
-            const height = 55 + Math.floor(Math.random() * 70); // 55m to 125m
-            const col = mats.buildingPalettes[Math.floor(Math.random() * mats.buildingPalettes.length)];
+            const height = 65 + Math.floor(Math.random() * 60); // 65m to 125m
 
-            const bMat = new THREE.MeshStandardMaterial({
-              color: col,
-              map: mats.windowTexture,
-              roughness: 0.2,
-              metalness: 0.5
-            });
+            const towerGroup = SkyscraperGenerator.createSkyscraper({
+              seed: seedCounter++,
+              width: twW,
+              depth: twD,
+              totalHeight: height,
+              style
+            }, mats);
 
-            const bMesh = new THREE.Mesh(new THREE.BoxGeometry(twW, height, twD), bMat);
-            bMesh.position.set(posX, height / 2, posZ);
-            bMesh.castShadow = true;
-            bMesh.receiveShadow = true;
-            root.add(bMesh);
+            towerGroup.position.set(posX, 0, posZ);
+            root.add(towerGroup);
 
             colliders.push({
               box: new THREE.Box3().setFromCenterAndSize(
@@ -130,32 +129,20 @@ export class DowntownBuilder {
             });
           }
         } else {
-          // 1 Massive Corporate Skyscraper (up to 140m!) with Helipad & Spire
-          const height = 80 + Math.floor(Math.random() * 60); // 80m to 140m!
-          const col = mats.buildingPalettes[Math.floor(Math.random() * mats.buildingPalettes.length)];
+          // 1 Single Massive Grand Skyscraper (up to 150m)
+          const height = 90 + Math.floor(Math.random() * 60); // 90m to 150m!
+          const style = styles[Math.floor(Math.random() * styles.length)];
 
-          const bMat = new THREE.MeshStandardMaterial({
-            color: col,
-            map: mats.windowTexture,
-            roughness: 0.15,
-            metalness: 0.6
-          });
+          const towerGroup = SkyscraperGenerator.createSkyscraper({
+            seed: seedCounter++,
+            width: bSize - 4,
+            depth: bSize - 4,
+            totalHeight: height,
+            style
+          }, mats);
 
-          const bMesh = new THREE.Mesh(new THREE.BoxGeometry(bSize - 4, height, bSize - 4), bMat);
-          bMesh.position.set(bx, height / 2, bz);
-          bMesh.castShadow = true;
-          bMesh.receiveShadow = true;
-          root.add(bMesh);
-
-          // Helipad Ring
-          const helipad = new THREE.Mesh(new THREE.RingGeometry(6, 8, 24), mats.neonCyanMat);
-          helipad.rotation.x = -Math.PI / 2;
-          helipad.position.set(bx, height + 0.2, bz);
-
-          // Rooftop Spire Antenna
-          const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.5, 18, 6), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9 }));
-          antenna.position.set(bx, height + 9, bz);
-          root.add(helipad, antenna);
+          towerGroup.position.set(bx, 0, bz);
+          root.add(towerGroup);
 
           colliders.push({
             box: new THREE.Box3().setFromCenterAndSize(

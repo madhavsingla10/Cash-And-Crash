@@ -1,24 +1,26 @@
 import * as THREE from 'three';
 import { WorldMaterials } from './materials';
+import { FenceGenerator } from './FenceGenerator';
 
 export class TransitionPlazaBuilder {
   public static buildTransitionPlaza(root: THREE.Group, mats: WorldMaterials) {
     // 1. Greenery Transition Belt (City to Countryside Transition Zone)
     const transitionGrass = new THREE.Mesh(
-      new THREE.PlaneGeometry(45, 200),
+      new THREE.BoxGeometry(45, 0.28, 200),
       mats.transitionGrassMat
     );
-    transitionGrass.rotation.x = -Math.PI / 2;
-    transitionGrass.position.set(72, 0.08, 175);
+    transitionGrass.position.set(72, 0.14, 175);
     transitionGrass.receiveShadow = true;
+    transitionGrass.castShadow = true;
     root.add(transitionGrass);
 
-    // Transition Boundary Trees & Rustic Split-Rail Fencing
-    const transitionFenceMat = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.8 });
+    // Transition Boundary Rustic Split-Rail Fencing
+    const rusticFence = FenceGenerator.buildRusticPostAndRailFence(190, 1.2, 5.0);
+    rusticFence.position.set(60, 0.14, 155);
+    rusticFence.rotation.y = Math.PI / 2;
+    root.add(rusticFence);
+
     for (let fz = 60; fz < 250; fz += 20) {
-      const fenceRail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.9, 18), transitionFenceMat);
-      fenceRail.position.set(60, 0.45, fz + 9);
-      root.add(fenceRail);
 
       const tTree = new THREE.Group();
       const tTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 4.0, 6), mats.trunkMat);

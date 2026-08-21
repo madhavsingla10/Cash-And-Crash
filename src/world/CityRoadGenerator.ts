@@ -44,6 +44,14 @@ export class CityRoadGenerator {
     ctx.fillStyle = '#2d6a4f';
     ctx.fillRect(parkMinX, parkMinY, parkMaxX - parkMinX, parkMaxY - parkMinY);
 
+    // Paint Greenery Transition Belt (x: 50 to 95, z: 60 to 260)
+    const greenBeltMinX = (50 + halfMap) * scale;
+    const greenBeltMaxX = (95 + halfMap) * scale;
+    const greenBeltMinY = (60 + halfMap) * scale;
+    const greenBeltMaxY = (260 + halfMap) * scale;
+    ctx.fillStyle = '#38b000';
+    ctx.fillRect(greenBeltMinX, greenBeltMinY, greenBeltMaxX - greenBeltMinX, greenBeltMaxY - greenBeltMinY);
+
     // Paint North-East Desert Badlands & Sand Fields (x >= 45 && z <= -45)
     const desertMinX = (45 + halfMap) * scale;
     const desertMaxY = (-45 + halfMap) * scale;

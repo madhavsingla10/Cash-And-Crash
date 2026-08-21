@@ -2,8 +2,6 @@
 
 > High-octane 3D arcade police pursuit and heist game built with **Three.js**, **TypeScript**, and **Vite**.
 
-![Cash & Crash](image.png)
-
 ## 🎮 Gameplay Overview
 
 In **Cash & Crash**, you drive a high-performance getaway sports car across a sprawling 3D metropolis. Collect floating cash bags scattered along the road network while outmaneuvering an increasingly aggressive police pursuit force.

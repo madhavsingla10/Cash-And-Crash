@@ -4,7 +4,7 @@ import { createWorldMaterials } from './materials';
 import { RoadNetworkBuilder } from './RoadNetworkBuilder';
 import { DowntownBuilder } from './DowntownBuilder';
 import { CentralParkBuilder } from './CentralParkBuilder';
-import { FarmlandBuilder } from './FarmlandBuilder';
+import { FarmlandBuilder, getDesertDuneHeight } from './FarmlandBuilder';
 import { TransitionPlazaBuilder } from './TransitionPlazaBuilder';
 import { CountrysideBuilder } from './CountrysideBuilder';
 import { SeaportBuilder } from './SeaportBuilder';
@@ -99,6 +99,14 @@ export class CityBuilder {
       new THREE.Vector3(-190, 0.8, 175),
       new THREE.Vector3(-304, 0.8, 180) // On Ocean Boardwalk Pier to Cargo Ship
     ];
+
+    streetMoney.forEach(p => {
+      const duneH = getDesertDuneHeight(p.x, p.z);
+      if (duneH > 0.1) {
+        p.y = duneH + 0.8;
+      }
+    });
+
     moneyLocations.push(...streetMoney);
 
     // 12. Police Patrol Spawn Points

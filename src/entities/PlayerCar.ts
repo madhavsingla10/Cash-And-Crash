@@ -347,6 +347,11 @@ export class PlayerCar {
       groundY = Math.max(groundY, 0.4 + duneH);
     }
 
+    // Check Ocean Boardwalk Pier to Cargo Ship
+    if (this.position.x >= -355 && this.position.x <= -255 && Math.abs(this.position.z - 180) <= 6.8) {
+      groundY = Math.max(groundY, 0.4);
+    }
+
     // Check if on top of any container, pier, boardwalk, or building collider
     for (let col of this.cityData.colliders) {
       if (col.type === 'building' || col.type === 'prop' || col.type === 'ramp') {

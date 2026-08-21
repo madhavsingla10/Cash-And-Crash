@@ -177,24 +177,53 @@ export class PoliceSquad {
   }
 
   public update(dt: number) {
-    if (this.wantedLevel === 0) return;
+    // When 0 Wanted Stars (no theft yet), NO police spawn or chase the player!
+    if (this.wantedLevel === 0) {
+      if (this.units.length > 0) {
+        for (let u of this.units) {
+          this.scene.remove(u.meshes.root);
+        }
+        this.units = [];
+      }
+      return;
+    }
 
-    const targetSquadSize = this.wantedLevel === 1 ? 2
-      : this.wantedLevel === 2 ? 3
-      : this.wantedLevel === 3 ? 5
-      : this.wantedLevel === 4 ? 7
-      : 8;
+    const targetSquadSize = this.wantedLevel === 1 ? 4
+      : this.wantedLevel === 2 ? 5
+      : this.wantedLevel === 3 ? 7
+      : this.wantedLevel === 4 ? 9
+      : 11;
+
+    const baseCooldown = this.wantedLevel === 1 ? 1.8
+      : this.wantedLevel === 2 ? 1.5
+      : this.wantedLevel === 3 ? 1.3
+      : this.wantedLevel === 4 ? 1.0
+      : 0.8;
 
     this.spawnCooldown -= dt;
     if (this.units.length < targetSquadSize && this.spawnCooldown <= 0) {
-      this.spawnCooldown = 2.5;
+      this.spawnCooldown = baseCooldown;
 
       let typeToSpawn: PoliceType = 'cruiser';
-      if (this.wantedLevel >= 4 && Math.random() > 0.45) {
-        typeToSpawn = 'swat';
-      } else if (this.wantedLevel >= 2 && Math.random() > 0.4) {
-        typeToSpawn = 'interceptor';
+      if (this.wantedLevel === 5) {
+        // Level 5: Heavy SWAT Vans dominate (75%), Interceptors (25%)
+        typeToSpawn = Math.random() < 0.75 ? 'swat' : 'interceptor';
+      } else if (this.wantedLevel === 4) {
+        // Level 4: Increased SWAT Van frequency (55%), Interceptors (30%), Cruisers (15%)
+        const r = Math.random();
+        typeToSpawn = r < 0.55 ? 'swat' : (r < 0.85 ? 'interceptor' : 'cruiser');
+      } else if (this.wantedLevel === 3) {
+        // Level 3: Introduce SWAT Vans (35%), Interceptors (35%), Cruisers (30%)
+        const r = Math.random();
+        typeToSpawn = r < 0.35 ? 'swat' : (r < 0.70 ? 'interceptor' : 'cruiser');
+      } else if (this.wantedLevel === 2) {
+        // Level 2: Interceptors (40%), Cruisers (60%)
+        typeToSpawn = Math.random() < 0.40 ? 'interceptor' : 'cruiser';
+      } else {
+        // Level 1: Cruisers (Pack of 4 actively deployed)
+        typeToSpawn = 'cruiser';
       }
+
       this.spawnUnit(typeToSpawn);
     }
 
@@ -464,19 +493,21 @@ export class PoliceSquad {
 
       if (copDestroyed) continue;
 
-      // 7. Cliff Drop / Water Fall
+      // 7. Cliff Drop / Water Fall (Exempting Ocean Boardwalk Pier)
+      const onOceanPier = cop.position.x >= -355 && cop.position.x <= -255 && Math.abs(cop.position.z - 180) <= 6.8;
       if (
-        cop.position.x < this.cityData.cityBounds.minX ||
+        (cop.position.x < this.cityData.cityBounds.minX ||
         cop.position.x > this.cityData.cityBounds.maxX ||
         cop.position.z < this.cityData.cityBounds.minZ ||
-        cop.position.z > this.cityData.cityBounds.maxZ
+        cop.position.z > this.cityData.cityBounds.maxZ) &&
+        !onOceanPier
       ) {
         this.particles.emitWaterSplash(cop.position);
         this.destroyCop(cop, i, '🌊 COP FLEW OFF CLIFF INTO OCEAN!', 1500);
         continue;
       }
 
-      // Update Mesh Transform & Desert Dune Elevation
+      // Update Mesh Transform & Desert Dune / Pier Elevation
       let copGroundY = 0.4;
       if (cop.position.x >= 50 && cop.position.z <= -50) {
         copGroundY = 0.4 + getDesertDuneHeight(cop.position.x, cop.position.z);

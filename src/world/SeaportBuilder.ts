@@ -66,36 +66,57 @@ export class SeaportBuilder {
       height: 10.5 + waterLevel
     });
 
-    // 3. Drivable Wooden Ocean Boardwalk / Pier to Cargo Ship (Allows driving over water to ship)
-    const pierLength = 88;
-    const pierW = 12;
-    const pierFloor = new THREE.Mesh(new THREE.BoxGeometry(pierLength, 0.6, pierW), woodPlankMat);
-    pierFloor.position.set(-304, 0.4, 180);
+    // 3. Drivable Ocean Pier / Boardwalk to Cargo Ship (Flush seamless transition from land to ship)
+    const pierLength = 92;
+    const pierW = 14;
+    // Floor top is at y = 0.15 + 0.25 = 0.40m, matching the island land level perfectly!
+    const pierFloor = new THREE.Mesh(new THREE.BoxGeometry(pierLength, 0.5, pierW), woodPlankMat);
+    pierFloor.position.set(-306, 0.15, 180);
     pierFloor.receiveShadow = true;
     pierFloor.castShadow = true;
 
-    for (let px = -265; px >= -345; px -= 12) {
-      for (let pz of [180 - pierW / 2 + 0.5, 180 + pierW / 2 - 0.5]) {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 6.0, 6), woodPlankMat);
-        post.position.set(px, -1.0, pz);
+    // Smooth asphalt approach ramp connecting land to pier
+    const rampGeo = new THREE.BoxGeometry(6.0, 0.15, pierW);
+    const rampMesh = new THREE.Mesh(rampGeo, harborPad.material);
+    rampMesh.position.set(-258, 0.08, 180);
+    rampMesh.receiveShadow = true;
+    root.add(rampMesh);
+
+    // Heavy wooden support pilings driven into ocean bed
+    for (let px = -262; px >= -348; px -= 10) {
+      for (let pz of [180 - pierW / 2 + 0.6, 180 + pierW / 2 - 0.6]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 8.0, 8), woodPlankMat);
+        post.position.set(px, -2.0, pz);
         root.add(post);
       }
     }
 
-    const railL = new THREE.Mesh(new THREE.BoxGeometry(pierLength, 0.8, 0.3), woodPlankMat);
-    railL.position.set(-304, 1.0, 180 - pierW / 2 + 0.2);
+    // Safety Side Guardrails (along outer edges only, leaving wide 12m open drivable deck)
+    const railL = new THREE.Mesh(new THREE.BoxGeometry(pierLength, 0.9, 0.4), woodPlankMat);
+    railL.position.set(-306, 0.7, 180 - pierW / 2 + 0.2);
     const railR = railL.clone();
     railR.position.z = 180 + pierW / 2 - 0.2;
 
     root.add(pierFloor, railL, railR);
 
+    // Left Railing Collider
     colliders.push({
       box: new THREE.Box3().setFromCenterAndSize(
-        new THREE.Vector3(-304, 0.2, 180),
-        new THREE.Vector3(pierLength, 1.2, pierW)
+        new THREE.Vector3(-306, 0.7, 180 - pierW / 2 + 0.2),
+        new THREE.Vector3(pierLength, 1.4, 0.6)
       ),
       type: 'prop',
-      height: 0.6
+      height: 1.4
+    });
+
+    // Right Railing Collider
+    colliders.push({
+      box: new THREE.Box3().setFromCenterAndSize(
+        new THREE.Vector3(-306, 0.7, 180 + pierW / 2 - 0.2),
+        new THREE.Vector3(pierLength, 1.4, 0.6)
+      ),
+      type: 'prop',
+      height: 1.4
     });
 
     // 4. SPACIOUS SHIPPING CONTAINER TERMINAL WITH WIDE DRIVING AVENUES (Farther Spaced Layout)

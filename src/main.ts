@@ -7,6 +7,7 @@ import { PlayerCar } from './entities/PlayerCar';
 import { PoliceSquad } from './entities/PoliceSquad';
 import { MoneyBagsManager } from './entities/MoneyBags';
 import { WaypointArrow } from './entities/WaypointArrow';
+import { VEHICLE_CATALOG, getVehicleById } from './entities/VehicleCatalog';
 
 enum GameState {
   MENU,
@@ -46,10 +47,10 @@ class Game {
   private comboTagEl = document.getElementById('combo-tag')!;
   private healthFillEl = document.getElementById('health-fill')!;
   private healthPctEl = document.getElementById('health-pct')!;
+  private carNameHudEl = document.getElementById('car-name-hud')!;
   private boostFillEl = document.getElementById('boost-fill')!;
   private boostPctEl = document.getElementById('boost-pct')!;
   private speedNumEl = document.getElementById('speed-num')!;
-  private objectiveBannerEl = document.getElementById('objective-banner')!;
   private gpsBadgeEl = document.getElementById('gps-badge')!;
   private takedownFeedEl = document.getElementById('takedown-feed')!;
   private damageFlashEl = document.getElementById('damage-flash')!;
@@ -77,7 +78,6 @@ class Game {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1e3a5f);
-    // Crystal-clear visibility across the expanded city
     this.scene.fog = new THREE.Fog(0x1e3a5f, 220, 800);
 
     // Camera
@@ -110,7 +110,6 @@ class Game {
     dirLight.shadow.camera.bottom = -d;
     this.scene.add(dirLight);
 
-    // Fill Light for crystal clear shadows and alleys
     const fillLight = new THREE.DirectionalLight(0x7dd3fc, 0.9);
     fillLight.position.set(-120, 80, -90);
     this.scene.add(fillLight);
@@ -154,14 +153,42 @@ class Game {
   }
 
   private setupUIEvents() {
-    // Start Game Button
+    // 1. Garage Car Selection Cards
+    const cards = document.querySelectorAll('.car-card');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const carId = card.getAttribute('data-car');
+        if (!carId) return;
+
+        cards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+
+        const info = this.player.setVehicle(carId);
+        this.updateGarageSpecDetail(info.id);
+        this.updateHUD();
+      });
+    });
+
+    // 2. In-Game Quick Car Switch Button ('C' Key or Button Click)
+    const switchBtn = document.getElementById('btn-quick-switch');
+    switchBtn?.addEventListener('click', () => {
+      this.switchNextVehicle();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyC') {
+        this.switchNextVehicle();
+      }
+    });
+
+    // 3. Start Game Button
     document.getElementById('start-btn')?.addEventListener('click', () => {
       this.audio.init();
       this.startModal.classList.add('hidden');
       this.startGame();
     });
 
-    // Restart Buttons
+    // 4. Restart Buttons
     document.getElementById('restart-btn')?.addEventListener('click', () => {
       this.gameOverModal.classList.add('hidden');
       this.startGame();
@@ -171,12 +198,54 @@ class Game {
       this.startGame();
     });
 
-    // Audio Toggle
+    // 5. Audio Toggle & Master Volume Slider
     const audioBtn = document.getElementById('audio-toggle');
+    const volumeSlider = document.getElementById('audio-volume') as HTMLInputElement | null;
+
     audioBtn?.addEventListener('click', () => {
+      this.audio.init();
       const isMuted = this.audio.toggleMute();
       audioBtn.textContent = isMuted ? '🔇' : '🔊';
     });
+
+    volumeSlider?.addEventListener('input', () => {
+      this.audio.init();
+      const val = parseFloat(volumeSlider.value) / 100;
+      this.audio.setVolume(val);
+      if (audioBtn) {
+        audioBtn.textContent = val === 0 || this.audio.getIsMuted() ? '🔇' : '🔊';
+      }
+    });
+  }
+
+  private switchNextVehicle() {
+    const v = this.player.cycleNextVehicle();
+    this.showTakedownPopup(`${v.icon} ACTIVATED: ${v.name.toUpperCase()}`, 0);
+
+    // Sync selected card in start modal
+    const cards = document.querySelectorAll('.car-card');
+    cards.forEach(c => {
+      if (c.getAttribute('data-car') === v.id) {
+        c.classList.add('selected');
+      } else {
+        c.classList.remove('selected');
+      }
+    });
+    this.updateGarageSpecDetail(v.id);
+    this.updateHUD();
+  }
+
+  private updateGarageSpecDetail(carId: string) {
+    const v = getVehicleById(carId);
+    const speedEl = document.getElementById('spec-speed');
+    const armorEl = document.getElementById('spec-armor');
+    const accelEl = document.getElementById('spec-accel');
+    const ramEl = document.getElementById('spec-ram');
+
+    if (speedEl) speedEl.textContent = `${v.stats.topSpeedMph} MPH`;
+    if (armorEl) armorEl.textContent = `${v.stats.armorHp} HP`;
+    if (accelEl) accelEl.textContent = v.stats.acceleration >= 30 ? 'Extreme' : (v.stats.acceleration >= 25 ? 'High' : 'Moderate');
+    if (ramEl) ramEl.textContent = v.stats.ramPower >= 2.0 ? 'Juggernaut' : (v.stats.ramPower >= 1.2 ? 'Heavy' : 'Normal');
   }
 
   private startGame() {
@@ -186,7 +255,6 @@ class Game {
     this.comboResetTimer = 0;
     this.cameraShake = 0;
 
-    // Start on the central wide avenue next to the grand Central Park
     this.player.reset(new THREE.Vector3(50, 0.4, 50));
     this.police.reset();
     this.particles.clearAll();
@@ -204,12 +272,10 @@ class Game {
   }
 
   private handleMoneyCollect(count: number, totalCash: number) {
-    // Add Score
     this.score += Math.round(1000 * this.comboMultiplier);
     this.comboMultiplier = Math.min(4.0, this.comboMultiplier + 0.25);
     this.comboResetTimer = 6.0;
 
-    // Heat Level Scaling based on Bags Collected
     let newWanted = 1;
     if (count >= 10) newWanted = 5;
     else if (count >= 7) newWanted = 4;
@@ -218,10 +284,9 @@ class Game {
 
     this.police.setWantedLevel(newWanted);
 
-    // Update Extraction
     if (count >= 10 && !this.money.isExtractionReady) {
       this.money.activateExtractionBeacon(this.cityData.extractionPoint);
-      this.showTakedownPopup('🚁 EXTRACTION HELIPAD OPEN AT SHOWDOWN PLAZA!', 2500);
+      this.showTakedownPopup('🚁 EXTRACTION HELIPAD OPEN AT GRAND BOULEVARD!', 2500);
     }
 
     this.updateHUD();
@@ -258,10 +323,16 @@ class Game {
     this.scoreValEl.textContent = this.score.toLocaleString();
     this.comboTagEl.textContent = `${this.comboMultiplier.toFixed(1)}x MULTIPLIER`;
 
+    // Vehicle Badge
+    if (this.carNameHudEl) {
+      this.carNameHudEl.textContent = this.player.currentVehicleInfo.name.toUpperCase();
+      this.carNameHudEl.style.color = this.player.currentVehicleInfo.colorHex;
+    }
+
     // Health
-    const hp = Math.max(0, Math.round(this.player.health));
-    this.healthPctEl.textContent = `${hp}%`;
-    this.healthFillEl.style.width = `${hp}%`;
+    const hpPct = Math.max(0, Math.round((this.player.health / this.player.maxHealth) * 100));
+    this.healthPctEl.textContent = `${hpPct}%`;
+    this.healthFillEl.style.width = `${hpPct}%`;
 
     // Boost
     const boost = Math.max(0, Math.round(this.player.boost));
@@ -306,7 +377,7 @@ class Game {
     const h = this.minimapCanvas.height;
     const cx = w / 2;
     const cy = h / 2;
-    const scale = 0.18; // World to radar scale for 660m map
+    const scale = 0.18;
 
     ctx.clearRect(0, 0, w, h);
 
@@ -314,7 +385,6 @@ class Game {
     ctx.fillStyle = 'rgba(10, 15, 29, 0.95)';
     ctx.fillRect(0, 0, w, h);
 
-    // World Boundary Rect
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(this.player.heading);
@@ -370,7 +440,7 @@ class Game {
     ctx.restore();
 
     // Player icon in Center (Arrow facing up)
-    ctx.fillStyle = '#00ffaa';
+    ctx.fillStyle = this.player.currentVehicleInfo.colorHex || '#00ffaa';
     ctx.beginPath();
     ctx.moveTo(cx, cy - 6);
     ctx.lineTo(cx + 4, cy + 5);
@@ -380,60 +450,52 @@ class Game {
     ctx.fill();
   }
 
-  private checkWinCondition() {
-    if (!this.money.isExtractionReady) return;
-
-    const distToExtract = this.player.position.distanceTo(this.cityData.extractionPoint);
-    if (distToExtract < 8.0 && this.player.speed < 15) {
-      // Victory!
-      this.state = GameState.VICTORY;
-      this.audio.stopSiren();
-      this.audio.playAlertSound();
-
-      document.getElementById('vic-cash')!.textContent = `$${this.money.totalCash.toLocaleString()}`;
-      document.getElementById('vic-wrecks')!.textContent = `${this.police.copsWrecked}`;
-      document.getElementById('vic-score')!.textContent = `${this.score.toLocaleString()}`;
-      this.victoryModal.classList.remove('hidden');
-    }
-  }
-
-  private checkGameOver() {
-    if (!this.player.isAlive) {
-      this.state = GameState.GAME_OVER;
-      this.audio.stopSiren();
-
-      this.gameOverReason.textContent = this.player.fellInWater
-        ? 'You plunged off the cliff into the ocean!'
-        : 'Your getaway car was completely wrecked by the police.';
-
-      document.getElementById('end-cash')!.textContent = `$${this.money.totalCash.toLocaleString()}`;
-      document.getElementById('end-wrecks')!.textContent = `${this.police.copsWrecked}`;
-      document.getElementById('end-score')!.textContent = `${this.score.toLocaleString()}`;
-      this.gameOverModal.classList.remove('hidden');
-    }
-  }
-
   private animate = () => {
     requestAnimationFrame(this.animate);
-    const dt = Math.min(this.clock.getDelta(), 0.08);
+
+    const dt = Math.min(0.1, this.clock.getDelta());
 
     if (this.state === GameState.PLAYING) {
-      // Update Entities
+      // 1. Update Player
       this.player.update(dt);
+
+      // Check Game Over (Busted)
+      if (!this.player.isAlive) {
+        this.state = GameState.GAME_OVER;
+        this.gameOverReason.textContent = this.player.fellInWater
+          ? 'Your vehicle plunged off the island cliffs into deep ocean water!'
+          : 'Your car was completely wrecked by the relentless police pursuit!';
+        document.getElementById('end-cash')!.textContent = `$${this.money.totalCash.toLocaleString()}`;
+        document.getElementById('end-wrecks')!.textContent = `${this.police.copsWrecked}`;
+        document.getElementById('end-score')!.textContent = `${this.score.toLocaleString()}`;
+        this.gameOverModal.classList.remove('hidden');
+      }
+
+      // Check Extraction Victory
+      if (this.money.isExtractionReady) {
+        const distToExtract = this.player.position.distanceTo(this.cityData.extractionPoint);
+        if (distToExtract < 10) {
+          this.state = GameState.VICTORY;
+          this.score += 50000;
+          document.getElementById('vic-cash')!.textContent = `$${this.money.totalCash.toLocaleString()}`;
+          document.getElementById('vic-wrecks')!.textContent = `${this.police.copsWrecked}`;
+          document.getElementById('vic-score')!.textContent = `${this.score.toLocaleString()}`;
+          this.victoryModal.classList.remove('hidden');
+        }
+      }
+
+      // 2. Update Subsystems
       this.police.update(dt);
       this.money.update(dt);
       this.particles.update(dt);
 
-      // Update 3D Floating Waypoint Arrow
-      const targetInfo = this.money.getNearestTarget(this.player.position, this.cityData.extractionPoint);
-      this.arrow.update(
-        this.player.position,
-        targetInfo ? targetInfo.pos : null,
-        targetInfo ? targetInfo.isExtraction : false,
-        dt
-      );
+      // 3. Update Waypoint Arrow
+      const targetPos = this.money.isExtractionReady
+        ? this.cityData.extractionPoint
+        : this.money.activeBagPosition;
+      this.arrow.update(this.player.position, targetPos, this.money.isExtractionReady, dt);
 
-      // Combo timer decay
+      // 4. Update Multiplier Decay
       if (this.comboResetTimer > 0) {
         this.comboResetTimer -= dt;
         if (this.comboResetTimer <= 0) {
@@ -441,54 +503,53 @@ class Game {
         }
       }
 
-      this.checkWinCondition();
-      this.checkGameOver();
+      // 5. Update HUD & Minimap
       this.updateHUD();
       this.renderMinimap();
+
+      // 6. Camera Follow
+      this.updateCamera(dt);
     } else {
-      this.particles.update(dt);
-      this.arrow.update(this.player.position, null, false, dt);
+      // Menu / GameOver idle rotation
+      const time = this.clock.getElapsedTime() * 0.2;
+      this.camera.position.x = Math.sin(time) * 45;
+      this.camera.position.z = Math.cos(time) * 45;
+      this.camera.position.y = 22;
+      this.camera.lookAt(0, 4, 0);
     }
 
-    // Camera Follow with Spring-arm and Dynamic FOV
-    const forward = new THREE.Vector3(
-      -Math.sin(this.player.heading),
-      0,
-      -Math.cos(this.player.heading)
-    );
-
-    const camDistance = 11.5 + (this.player.isBoosting ? 2.5 : 0);
-    const camHeight = 5.8 + (this.player.isBoosting ? 0.6 : 0);
-    const targetCamPos = this.player.position.clone()
-      .addScaledVector(forward, -camDistance)
-      .add(new THREE.Vector3(0, camHeight, 0));
-
-    // Smooth Camera position
-    this.camera.position.lerp(targetCamPos, 9.0 * dt);
-
-    // Screen Shake effect
-    if (this.cameraShake > 0) {
-      this.camera.position.x += (Math.random() - 0.5) * this.cameraShake;
-      this.camera.position.y += (Math.random() - 0.5) * this.cameraShake;
-      this.camera.position.z += (Math.random() - 0.5) * this.cameraShake;
-      this.cameraShake = Math.max(0, this.cameraShake - 2.5 * dt);
-    }
-
-    // Look at point slightly in front of the car
-    const lookTarget = this.player.position.clone().addScaledVector(forward, 3.5).add(new THREE.Vector3(0, 1.2, 0));
-    this.camera.lookAt(lookTarget);
-
-    // Dynamic FOV adjustment
-    const targetFOV = 65 + (this.player.isBoosting ? 14 : Math.min(8, (Math.abs(this.player.speed) / 38) * 8));
-    this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, targetFOV, 6 * dt);
-    this.camera.updateProjectionMatrix();
-
-    // Render Scene
     this.renderer.render(this.scene, this.camera);
   };
+
+  private updateCamera(dt: number) {
+    const behindDist = 9.5;
+    const height = 4.5;
+
+    const carHeading = this.player.heading;
+    const targetCamPos = this.player.position.clone().add(
+      new THREE.Vector3(
+        Math.sin(carHeading) * behindDist,
+        height,
+        Math.cos(carHeading) * behindDist
+      )
+    );
+
+    // Camera Shake on collisions
+    if (this.cameraShake > 0) {
+      targetCamPos.x += (Math.random() - 0.5) * this.cameraShake * 1.5;
+      targetCamPos.y += (Math.random() - 0.5) * this.cameraShake * 1.5;
+      targetCamPos.z += (Math.random() - 0.5) * this.cameraShake * 1.5;
+      this.cameraShake = Math.max(0, this.cameraShake - dt * 2.5);
+    }
+
+    this.camera.position.lerp(targetCamPos, 8 * dt);
+
+    const lookTarget = this.player.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+    this.camera.lookAt(lookTarget);
+  }
 }
 
-// Boot the Game
+// Start Game Instance
 window.addEventListener('DOMContentLoaded', () => {
   new Game();
 });

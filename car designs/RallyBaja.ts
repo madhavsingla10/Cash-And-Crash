@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CarMeshes } from '../entities/CarBuilder';
+import { CarMeshes } from '../src/entities/CarBuilder';
 
 const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.32, 12);
 const wheelMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.7 });

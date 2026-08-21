@@ -334,7 +334,6 @@ export class PoliceSquad {
         // Damage player & knock player
         this.player.takeDamage(playerDamage);
         this.particles.emitSparks(cop.position, 16);
-        this.audio.playCrashExplosion(false);
 
         // Heavy impulse push strictly on horizontal XZ plane
         const pushDir = new THREE.Vector3(

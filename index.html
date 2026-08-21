@@ -53,7 +53,7 @@
         width: 100%;
       }
       .hud-card {
-        background: rgba(10, 15, 29, 0.85);
+        background: rgba(10, 15, 29, 0.88);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(0, 255, 200, 0.3);
         border-radius: 12px;
@@ -114,9 +114,13 @@
         100% { transform: scale(1.18); filter: brightness(1.4); }
       }
 
-      /* Score & Multiplier */
+      /* Score & Vehicle Switcher HUD */
       .score-display {
         text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
       }
       .score-val {
         font-size: 26px;
@@ -131,7 +135,27 @@
         letter-spacing: 1.5px;
       }
 
-      /* Top-Right Notification Feed (Clean & Non-Intrusive) */
+      .btn-switch-car {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        border: 1px solid #38bdf8;
+        color: #fff;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        pointer-events: auto;
+        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+        transition: all 0.2s ease;
+      }
+      .btn-switch-car:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.7);
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+      }
+
+      /* Notification Feed */
       .toast-feed {
         position: absolute;
         top: 85px;
@@ -160,261 +184,266 @@
         0% { transform: translateX(50px); opacity: 0; }
         100% { transform: translateX(0); opacity: 1; }
       }
-      .gps-badge {
-        font-size: 12px;
-        font-weight: 800;
-        color: #00ffaa;
-        letter-spacing: 1px;
-        margin-top: 4px;
-        text-shadow: 0 0 6px rgba(0, 255, 170, 0.5);
-      }
 
-      /* Bottom HUD: Health, Boost, Speedometer, Minimap */
+      /* Bottom Bar */
       .bottom-hud {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         width: 100%;
-        gap: 16px;
       }
+
       .bars-container {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        width: 240px;
+        width: 220px;
       }
       .bar-label {
         display: flex;
         justify-content: space-between;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
         letter-spacing: 1px;
         margin-bottom: 3px;
       }
       .bar-track {
         width: 100%;
-        height: 12px;
+        height: 10px;
         background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 6px;
+        border-radius: 5px;
         overflow: hidden;
-        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
       .bar-fill {
         height: 100%;
-        width: 100%;
-        transition: width 0.15s ease-out;
+        transition: width 0.15s ease;
       }
       .health-fill {
-        background: linear-gradient(90deg, #ff3366, #00ff88);
+        background: linear-gradient(90deg, #ff0055, #00ff88);
         box-shadow: 0 0 10px #00ff88;
       }
       .boost-fill {
-        background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+        background: linear-gradient(90deg, #0055ff, #00d2ff);
         box-shadow: 0 0 10px #00d2ff;
       }
 
-      /* Speedometer */
       .speedometer {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-width: 110px;
+        padding: 8px 24px;
       }
       .speed-num {
-        font-family: 'Black Ops One', cursive;
-        font-size: 40px;
-        line-height: 1;
+        font-family: 'Teko', sans-serif;
+        font-size: 46px;
+        line-height: 0.9;
+        font-weight: 700;
         color: #fff;
-        text-shadow: 0 0 15px rgba(0, 210, 255, 0.7);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
       }
       .speed-unit {
         font-size: 11px;
+        font-weight: 800;
+        color: #00ffaa;
         letter-spacing: 2px;
-        color: #94a3b8;
-        font-weight: 700;
       }
 
       /* Minimap */
       .minimap-wrapper {
-        position: relative;
         width: 140px;
         height: 140px;
         border-radius: 50%;
         overflow: hidden;
         border: 2px solid rgba(0, 255, 200, 0.6);
-        box-shadow: 0 0 20px rgba(0, 255, 200, 0.25);
-        background: rgba(10, 15, 29, 0.85);
+        box-shadow: 0 0 20px rgba(0, 255, 200, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+        background: #090d16;
       }
       #minimap-canvas {
         width: 100%;
         height: 100%;
-        display: block;
       }
 
-      /* Mobile Controls */
-      .mobile-controls {
+      /* Objective Notification Banner */
+      .objective-banner {
         position: absolute;
-        bottom: 15px;
-        left: 0;
-        width: 100%;
-        display: none;
-        justify-content: space-between;
-        padding: 0 20px;
-        pointer-events: auto;
-        z-index: 20;
-      }
-      .touch-group {
-        display: flex;
-        gap: 12px;
-      }
-      .touch-btn {
-        width: 62px;
-        height: 62px;
-        border-radius: 50%;
-        background: rgba(15, 23, 42, 0.8);
-        border: 2px solid rgba(0, 255, 200, 0.5);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        font-weight: 900;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        touch-action: manipulation;
-      }
-      .touch-btn:active {
-        background: rgba(0, 255, 200, 0.4);
-        transform: scale(0.92);
-      }
-      .btn-boost {
-        border-color: #00d2ff;
-        background: rgba(0, 150, 255, 0.3);
-      }
-      .btn-drift {
-        border-color: #ff3366;
-        background: rgba(255, 51, 102, 0.3);
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(10, 15, 29, 0.95);
+        border: 1px solid #00ffee;
+        border-radius: 20px;
+        padding: 8px 24px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #00ffee;
+        text-shadow: 0 0 10px rgba(0, 255, 238, 0.6);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        transition: all 0.3s ease;
       }
 
-      /* Modals: Menu, Game Over, Victory */
+      .gps-badge {
+        font-size: 11px;
+        color: #ff007f;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin-top: 3px;
+      }
+
+      /* Modals (Start, Game Over, Victory) */
       .modal-screen {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        background: radial-gradient(circle at center, rgba(15, 23, 42, 0.92) 0%, rgba(5, 8, 15, 0.98) 100%);
+        backdrop-filter: blur(15px);
         z-index: 100;
-        background: rgba(8, 12, 22, 0.88);
-        backdrop-filter: blur(12px);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        pointer-events: auto;
-        text-align: center;
         padding: 24px;
+        text-align: center;
+        overflow-y: auto;
       }
       .modal-screen.hidden {
-        display: none;
+        display: none !important;
       }
+
       .game-title {
         font-family: 'Black Ops One', cursive;
-        font-size: clamp(38px, 6vw, 68px);
-        background: linear-gradient(135deg, #00ffaa, #00d2ff, #ff3366);
+        font-size: clamp(32px, 5vw, 54px);
+        background: linear-gradient(135deg, #00ffaa, #00aaff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 2px;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        filter: drop-shadow(0 0 25px rgba(0, 255, 170, 0.4));
+        letter-spacing: 3px;
+        margin-bottom: 6px;
+        filter: drop-shadow(0 0 20px rgba(0, 255, 170, 0.5));
       }
       .game-subtitle {
-        font-size: clamp(13px, 2vw, 17px);
+        font-size: clamp(12px, 2vw, 15px);
         color: #94a3b8;
-        letter-spacing: 3px;
-        margin-bottom: 28px;
-        max-width: 550px;
-        line-height: 1.5;
-      }
-      .how-to-play-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-        gap: 14px;
         max-width: 600px;
+        line-height: 1.4;
+        margin-bottom: 16px;
+      }
+
+      /* Garage Car Selector Grid */
+      .garage-section {
         width: 100%;
-        margin-bottom: 30px;
+        max-width: 900px;
+        margin-bottom: 18px;
       }
-      .rule-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        padding: 12px 10px;
+      .garage-title {
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        color: #38bdf8;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
       }
-      .rule-icon {
-        font-size: 24px;
-        margin-bottom: 4px;
+      .garage-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+        gap: 10px;
+        width: 100%;
       }
-      .rule-title {
-        font-size: 12px;
+      .car-card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 10px 8px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .car-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 255, 200, 0.6);
+        background: rgba(30, 41, 59, 0.9);
+      }
+      .car-card.selected {
+        border-color: #00ffaa;
+        background: rgba(0, 255, 170, 0.15);
+        box-shadow: 0 0 20px rgba(0, 255, 170, 0.4), inset 0 0 10px rgba(0, 255, 170, 0.2);
+        transform: scale(1.05);
+      }
+      .car-card-icon {
+        font-size: 26px;
+      }
+      .car-card-name {
+        font-size: 11px;
         font-weight: 800;
-        color: #00ffaa;
-        margin-bottom: 2px;
+        color: #f1f5f9;
+        white-space: nowrap;
       }
-      .rule-desc {
-        font-size: 10px;
-        color: #cbd5e1;
+      .car-card-cat {
+        font-size: 9px;
+        color: #94a3b8;
+        letter-spacing: 0.5px;
+      }
+
+      .car-spec-detail {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 10px;
+        padding: 10px 16px;
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 11px;
+      }
+      .spec-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .spec-name {
+        color: #94a3b8;
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
+      .spec-val {
+        color: #00ffaa;
+        font-weight: 800;
+        font-size: 13px;
       }
 
       .btn-play {
-        background: linear-gradient(135deg, #00ffaa, #00b4d8);
+        background: linear-gradient(135deg, #00ffaa, #0088ff);
         border: none;
-        border-radius: 50px;
-        padding: 16px 48px;
-        font-family: 'Orbitron', sans-serif;
+        border-radius: 30px;
+        color: #050810;
+        font-family: 'Black Ops One', cursive;
         font-size: 20px;
-        font-weight: 900;
-        color: #080c16;
-        letter-spacing: 2px;
+        padding: 12px 42px;
         cursor: pointer;
-        box-shadow: 0 0 30px rgba(0, 255, 170, 0.5);
+        box-shadow: 0 0 30px rgba(0, 255, 170, 0.6);
         transition: all 0.2s ease;
+        letter-spacing: 2px;
+        pointer-events: auto;
       }
       .btn-play:hover {
         transform: scale(1.06);
-        box-shadow: 0 0 45px rgba(0, 255, 170, 0.8);
-      }
-      .btn-play:active {
-        transform: scale(0.96);
-      }
-
-      .stats-summary {
-        display: flex;
-        gap: 24px;
-        margin: 20px 0 28px;
-      }
-      .stat-box {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        padding: 12px 20px;
-        min-width: 110px;
-      }
-      .stat-num {
-        font-size: 24px;
-        font-weight: 900;
-        color: #00ffaa;
-      }
-      .stat-label {
-        font-size: 11px;
-        color: #94a3b8;
-        letter-spacing: 1px;
-        margin-top: 2px;
+        box-shadow: 0 0 45px rgba(0, 255, 170, 0.9);
       }
 
       .controls-hint {
-        margin-top: 18px;
-        font-size: 12px;
+        margin-top: 14px;
+        font-size: 11px;
         color: #64748b;
         letter-spacing: 1px;
       }
@@ -429,24 +458,68 @@
         margin: 0 2px;
       }
 
-      /* Audio Toggle Button */
-      #audio-toggle {
+      /* Audio Controls Widget */
+      .audio-controls-box {
         position: absolute;
         top: 16px;
         right: 16px;
         z-index: 50;
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 255, 200, 0.25);
+        border-radius: 20px;
+        padding: 4px 12px 4px 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+      }
+      #audio-toggle {
+        background: transparent;
+        border: none;
         color: #fff;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        outline: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        width: 32px;
+        height: 32px;
+        transition: transform 0.15s ease;
+      }
+      #audio-toggle:hover {
+        transform: scale(1.15);
+      }
+      #audio-volume {
+        width: 75px;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #334155;
+        border-radius: 4px;
+        outline: none;
         cursor: pointer;
-        pointer-events: auto;
+      }
+      #audio-volume::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #00ffaa;
+        box-shadow: 0 0 6px rgba(0, 255, 170, 0.8);
+        cursor: pointer;
+      }
+      #audio-volume::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #00ffaa;
+        border: none;
+        box-shadow: 0 0 6px rgba(0, 255, 170, 0.8);
+        cursor: pointer;
       }
 
       /* Red screen flash on player hit */
@@ -463,9 +536,33 @@
         transition: opacity 0.1s ease;
       }
 
+      .stats-summary {
+        display: flex;
+        gap: 16px;
+        margin: 18px 0;
+      }
+      .stat-box {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(0, 255, 200, 0.3);
+        border-radius: 10px;
+        padding: 12px 20px;
+        min-width: 110px;
+      }
+      .stat-num {
+        font-size: 24px;
+        font-weight: 900;
+        color: #00ffaa;
+      }
+      .stat-label {
+        font-size: 11px;
+        color: #94a3b8;
+        letter-spacing: 1px;
+        margin-top: 2px;
+      }
+
       @media (max-width: 768px) {
-        .mobile-controls {
-          display: flex;
+        .garage-grid {
+          grid-template-columns: repeat(3, 1fr);
         }
         .bars-container {
           width: 150px;
@@ -490,7 +587,10 @@
     <div id="canvas-container"></div>
     <div id="damage-flash"></div>
 
-    <button id="audio-toggle" title="Toggle Audio">🔊</button>
+    <div class="audio-controls-box">
+      <button id="audio-toggle" title="Toggle Mute">🔊</button>
+      <input type="range" id="audio-volume" min="0" max="100" value="50" title="Master Volume" />
+    </div>
 
     <!-- Main HUD -->
     <div id="hud">
@@ -518,10 +618,11 @@
           </div>
         </div>
 
-        <!-- Score & Multiplier -->
+        <!-- Score & Multiplier & Car Switcher -->
         <div class="hud-card score-display">
           <div id="score-val" class="score-val">0</div>
           <div id="combo-tag" class="combo-tag">1.0x MULTIPLIER</div>
+          <button id="btn-quick-switch" class="btn-switch-car" title="Press 'C' to switch vehicle">🚘 SWITCH CAR (C)</button>
         </div>
       </div>
 
@@ -534,7 +635,7 @@
         <div class="hud-card bars-container">
           <div>
             <div class="bar-label">
-              <span style="color: #00ff88;">CAR INTEGRITY</span>
+              <span id="car-name-hud" style="color: #00ff88;">CYBER STINGER</span>
               <span id="health-pct" style="color: #00ff88;">100%</span>
             </div>
             <div class="bar-track">
@@ -565,52 +666,76 @@
       </div>
     </div>
 
-    <!-- Mobile Touch Controls -->
-    <div id="mobile-controls" class="mobile-controls">
-      <div class="touch-group">
-        <div class="touch-btn" id="btn-left">◀</div>
-        <div class="touch-btn" id="btn-right">▶</div>
-      </div>
-      <div class="touch-group">
-        <div class="touch-btn btn-drift" id="btn-drift">💨</div>
-        <div class="touch-btn btn-boost" id="btn-boost">⚡</div>
-        <div class="touch-btn" id="btn-brake">🛑</div>
-        <div class="touch-btn" id="btn-gas">▲</div>
-      </div>
-    </div>
-
-    <!-- Start Screen Modal -->
+    <!-- Start Screen Modal with Interactive Garage Selector -->
     <div id="start-modal" class="modal-screen">
       <h1 class="game-title">HEAT RUNNER 3D</h1>
-      <p class="game-subtitle">Steal cash bags across the city, outsmart aggressive police pursuit, make cops crash into walls and plunge off cliffs!</p>
+      <p class="game-subtitle">Steal cash bags across the metropolis, escape police pursuit, jump over sand dunes & drift through the container seaport!</p>
       
-      <div class="how-to-play-grid">
-        <div class="rule-card">
-          <div class="rule-icon">💰</div>
-          <div class="rule-title">COLLECT CASH</div>
-          <div class="rule-desc">Grab floating money bags to increase score & unlock extraction.</div>
+      <!-- Garage Vehicle Selector -->
+      <div class="garage-section">
+        <div class="garage-title">🏎️ CHOOSE YOUR GETAWAY VEHICLE</div>
+        <div class="garage-grid" id="garage-grid">
+          <div class="car-card selected" data-car="cyber_stinger">
+            <span class="car-card-icon">⚡</span>
+            <span class="car-card-name">Cyber Stinger</span>
+            <span class="car-card-cat">Tuner</span>
+          </div>
+          <div class="car-card" data-car="hypercar">
+            <span class="car-card-icon">🚀</span>
+            <span class="car-card-name">Hypercar</span>
+            <span class="car-card-cat">Track</span>
+          </div>
+          <div class="car-card" data-car="muscle">
+            <span class="car-card-icon">🔥</span>
+            <span class="car-card-name">Retro Muscle</span>
+            <span class="car-card-cat">V8 Power</span>
+          </div>
+          <div class="car-card" data-car="monster_truck">
+            <span class="car-card-icon">🛞</span>
+            <span class="car-card-name">Monster Titan</span>
+            <span class="car-card-cat">4x4 Heavy</span>
+          </div>
+          <div class="car-card" data-car="rally_baja">
+            <span class="car-card-icon">🏎️</span>
+            <span class="car-card-name">Rally Baja</span>
+            <span class="car-card-cat">Dune Rally</span>
+          </div>
+          <div class="car-card" data-car="cyber_sedan">
+            <span class="car-card-icon">🏙️</span>
+            <span class="car-card-name">Cyber Sedan</span>
+            <span class="car-card-cat">Luxury</span>
+          </div>
+          <div class="car-card" data-car="armored_limo">
+            <span class="car-card-icon">🛡️</span>
+            <span class="car-card-name">Armored Limo</span>
+            <span class="car-card-cat">Tank</span>
+          </div>
         </div>
-        <div class="rule-card">
-          <div class="rule-icon">🚔</div>
-          <div class="rule-title">DODGE COPS</div>
-          <div class="rule-desc">Juke at the last moment to make cops smash each other or cliffs.</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-icon">🚐</div>
-          <div class="rule-title">SURVIVE SWAT</div>
-          <div class="rule-desc">Higher heat spawns armored vans that fire bullets at you!</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-icon">🚁</div>
-          <div class="rule-title">ESCAPE & WIN</div>
-          <div class="rule-desc">Reach the helicopter extraction zone after collecting the loot.</div>
+
+        <div class="car-spec-detail" id="car-spec-detail">
+          <div class="spec-item">
+            <span class="spec-name">TOP SPEED</span>
+            <span class="spec-val" id="spec-speed">85 MPH</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-name">ARMOR HP</span>
+            <span class="spec-val" id="spec-armor">100 HP</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-name">ACCELERATION</span>
+            <span class="spec-val" id="spec-accel">High</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-name">RAM POWER</span>
+            <span class="spec-val" id="spec-ram">Normal</span>
+          </div>
         </div>
       </div>
 
       <button id="start-btn" class="btn-play">START GETAWAY</button>
 
       <div class="controls-hint">
-        Controls: <span class="key">W</span> / <span class="key">▲</span> Gas &bull; <span class="key">S</span> / <span class="key">▼</span> Reverse &bull; <span class="key">A</span> / <span class="key">D</span> Steer &bull; <span class="key">SPACE</span> Drift &bull; <span class="key">SHIFT</span> Nitro Boost
+        Controls: <span class="key">W</span> Gas &bull; <span class="key">S</span> Reverse &bull; <span class="key">A</span>/<span class="key">D</span> Steer &bull; <span class="key">SPACE</span> Drift &bull; <span class="key">SHIFT</span> Boost &bull; <span class="key">C</span> Switch Car
       </div>
     </div>
 

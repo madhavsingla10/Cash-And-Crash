@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>HEAT RUNNER 3D - High-Speed Police Chase</title>
+    <title>CASH & CRASH - 3D Multiplayer Getaway</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Orbitron:wght@600;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <style>
       * {
         margin: 0;
@@ -19,9 +20,9 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #0b0f19;
-        font-family: 'Orbitron', -apple-system, sans-serif;
-        color: #fff;
+        background: #06060a;
+        font-family: 'JetBrains Mono', monospace;
+        color: #e5e2e3;
       }
       #canvas-container {
         position: absolute;
@@ -31,21 +32,62 @@
         height: 100%;
         z-index: 1;
       }
+
+      /* Cyber Scanlines & Grid Effects */
+      .scanlines {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(255,255,255,0),
+          rgba(255,255,255,0) 50%,
+          rgba(0,0,0,0.25) 50%,
+          rgba(0,0,0,0.25)
+        );
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 90;
+        opacity: 0.6;
+      }
+      .grid-bg {
+        background-image: 
+          linear-gradient(to right, rgba(0, 219, 233, 0.04) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 219, 233, 0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .glow-sm {
+        text-shadow: 0 0 12px rgba(0, 219, 233, 0.6), 0 0 24px rgba(0, 219, 233, 0.3);
+      }
+      .glow-cyan {
+        box-shadow: 0 0 15px rgba(0, 219, 233, 0.5);
+      }
+      .glow-red {
+        box-shadow: 0 0 20px rgba(255, 82, 92, 0.6);
+      }
+      .clip-edges {
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+      }
+
+      /* ---------------- In-Game HUD ---------------- */
       #hud {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 10;
+        z-index: 20;
         pointer-events: none;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 16px 20px;
+        padding: 16px 24px;
       }
-
-      /* Top HUD Bar */
+      #hud.hidden {
+        display: none !important;
+      }
       .top-hud {
         display: flex;
         justify-content: space-between;
@@ -53,12 +95,11 @@
         width: 100%;
       }
       .hud-card {
-        background: rgba(10, 15, 29, 0.88);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0, 255, 200, 0.3);
-        border-radius: 12px;
+        background: rgba(19, 19, 20, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 219, 233, 0.35);
         padding: 10px 18px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 255, 200, 0.05);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
       }
       .money-display {
         display: flex;
@@ -70,15 +111,23 @@
         filter: drop-shadow(0 0 8px #00ffaa);
       }
       .money-val {
-        font-family: 'Black Ops One', cursive;
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 32px;
-        color: #00ffaa;
+        font-weight: 700;
+        color: #00f0ff;
         letter-spacing: 1px;
-        text-shadow: 0 0 15px rgba(0, 255, 170, 0.6);
+        text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
       }
       .bags-count {
-        font-size: 13px;
-        color: #8be9fd;
+        font-size: 12px;
+        color: #fffa9e;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-top: 2px;
+      }
+      .gps-badge {
+        font-size: 11px;
+        color: #ff525c;
         font-weight: 700;
         letter-spacing: 1px;
         margin-top: 2px;
@@ -91,18 +140,19 @@
         align-items: center;
       }
       .wanted-title {
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 12px;
-        font-weight: 900;
+        font-weight: 800;
         letter-spacing: 3px;
-        color: #ff3366;
-        text-shadow: 0 0 8px rgba(255, 51, 102, 0.8);
+        color: #ff525c;
+        text-shadow: 0 0 8px rgba(255, 82, 92, 0.8);
         margin-bottom: 4px;
       }
       .wanted-stars {
         display: flex;
         gap: 6px;
         font-size: 24px;
-        color: #334155;
+        color: #353436;
       }
       .wanted-star.active {
         color: #ffcc00;
@@ -114,7 +164,7 @@
         100% { transform: scale(1.18); filter: brightness(1.4); }
       }
 
-      /* Score & Vehicle Switcher HUD */
+      /* Score & Switch Car */
       .score-display {
         text-align: right;
         display: flex;
@@ -123,43 +173,40 @@
         gap: 6px;
       }
       .score-val {
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 26px;
-        font-weight: 900;
+        font-weight: 700;
         color: #f1f5f9;
-        letter-spacing: 1px;
       }
       .combo-tag {
-        font-size: 13px;
-        color: #ff79c6;
-        font-weight: 800;
+        font-size: 12px;
+        color: #fffa9e;
+        font-weight: 700;
         letter-spacing: 1.5px;
       }
-
       .btn-switch-car {
-        background: linear-gradient(135deg, #0ea5e9, #0284c7);
-        border: 1px solid #38bdf8;
-        color: #fff;
-        padding: 5px 12px;
-        border-radius: 8px;
-        font-family: 'Orbitron', sans-serif;
+        background: #00dbe9;
+        color: #002022;
+        border: none;
+        padding: 6px 14px;
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 11px;
         font-weight: 800;
         cursor: pointer;
         pointer-events: auto;
-        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+        box-shadow: 0 0 12px rgba(0, 219, 233, 0.5);
         transition: all 0.2s ease;
       }
       .btn-switch-car:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.7);
-        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        background: #fff;
+        transform: scale(1.05);
       }
 
-      /* Notification Feed */
+      /* Takedown Toast */
       .toast-feed {
         position: absolute;
-        top: 85px;
-        right: 20px;
+        top: 90px;
+        right: 24px;
         display: flex;
         flex-direction: column;
         align-items: flex-end;
@@ -169,63 +216,54 @@
         z-index: 50;
       }
       .takedown-notification {
-        background: rgba(15, 23, 42, 0.95);
-        border: 1.5px solid #ffbb00;
-        border-radius: 8px;
-        padding: 6px 14px;
+        background: rgba(19, 19, 20, 0.95);
+        border: 1.5px solid #ffcc00;
+        padding: 8px 16px;
         font-size: 13px;
-        font-weight: 900;
-        color: #ffdd44;
-        text-shadow: 0 0 8px rgba(255, 221, 68, 0.7);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-        animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-      @keyframes slideInRight {
-        0% { transform: translateX(50px); opacity: 0; }
-        100% { transform: translateX(0); opacity: 1; }
+        font-weight: 800;
+        color: #fffa9e;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
       }
 
-      /* Bottom Bar */
+      /* Bottom HUD Bar */
       .bottom-hud {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
         width: 100%;
       }
-
       .bars-container {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        width: 220px;
+        width: 230px;
       }
       .bar-label {
         display: flex;
         justify-content: space-between;
-        font-size: 10px;
-        font-weight: 800;
+        font-size: 11px;
+        font-weight: 700;
         letter-spacing: 1px;
         margin-bottom: 3px;
       }
       .bar-track {
         width: 100%;
         height: 10px;
-        background: rgba(15, 23, 42, 0.8);
-        border-radius: 5px;
+        background: #201f20;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
       .bar-fill {
         height: 100%;
         transition: width 0.15s ease;
       }
       .health-fill {
-        background: linear-gradient(90deg, #ff0055, #00ff88);
-        box-shadow: 0 0 10px #00ff88;
+        background: linear-gradient(90deg, #ff525c, #00f0ff);
+        box-shadow: 0 0 10px #00f0ff;
       }
       .boost-fill {
-        background: linear-gradient(90deg, #0055ff, #00d2ff);
-        box-shadow: 0 0 10px #00d2ff;
+        background: linear-gradient(90deg, #0284c7, #38bdf8);
+        box-shadow: 0 0 10px #38bdf8;
       }
 
       .speedometer {
@@ -233,31 +271,30 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 8px 24px;
+        padding: 8px 26px;
       }
       .speed-num {
-        font-family: 'Teko', sans-serif;
-        font-size: 46px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 48px;
         line-height: 0.9;
         font-weight: 700;
         color: #fff;
-        text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        text-shadow: 0 0 15px rgba(0, 219, 233, 0.7);
       }
       .speed-unit {
         font-size: 11px;
         font-weight: 800;
-        color: #00ffaa;
+        color: #00dbe9;
         letter-spacing: 2px;
       }
 
-      /* Minimap */
       .minimap-wrapper {
         width: 140px;
         height: 140px;
         border-radius: 50%;
         overflow: hidden;
-        border: 2px solid rgba(0, 255, 200, 0.6);
-        box-shadow: 0 0 20px rgba(0, 255, 200, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+        border: 2px solid #00dbe9;
+        box-shadow: 0 0 20px rgba(0, 219, 233, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.8);
         background: #090d16;
       }
       #minimap-canvas {
@@ -265,264 +302,7 @@
         height: 100%;
       }
 
-      /* Objective Notification Banner */
-      .objective-banner {
-        position: absolute;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(10, 15, 29, 0.95);
-        border: 1px solid #00ffee;
-        border-radius: 20px;
-        padding: 8px 24px;
-        font-size: 13px;
-        font-weight: 800;
-        color: #00ffee;
-        text-shadow: 0 0 10px rgba(0, 255, 238, 0.6);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-        pointer-events: none;
-        transition: all 0.3s ease;
-      }
-
-      .gps-badge {
-        font-size: 11px;
-        color: #ff007f;
-        font-weight: 800;
-        letter-spacing: 1px;
-        margin-top: 3px;
-      }
-
-      /* Modals (Start, Game Over, Victory) */
-      .modal-screen {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle at center, rgba(15, 23, 42, 0.92) 0%, rgba(5, 8, 15, 0.98) 100%);
-        backdrop-filter: blur(15px);
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        text-align: center;
-        overflow-y: auto;
-      }
-      .modal-screen.hidden {
-        display: none !important;
-      }
-
-      .game-title {
-        font-family: 'Black Ops One', cursive;
-        font-size: clamp(32px, 5vw, 54px);
-        background: linear-gradient(135deg, #00ffaa, #00aaff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 3px;
-        margin-bottom: 6px;
-        filter: drop-shadow(0 0 20px rgba(0, 255, 170, 0.5));
-      }
-      .game-subtitle {
-        font-size: clamp(12px, 2vw, 15px);
-        color: #94a3b8;
-        max-width: 600px;
-        line-height: 1.4;
-        margin-bottom: 16px;
-      }
-
-      /* Garage Car Selector Grid */
-      .garage-section {
-        width: 100%;
-        max-width: 900px;
-        margin-bottom: 18px;
-      }
-      .garage-title {
-        font-size: 13px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        color: #38bdf8;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-      .garage-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
-        gap: 10px;
-        width: 100%;
-      }
-      .car-card {
-        background: rgba(30, 41, 59, 0.6);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 10px 8px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-      }
-      .car-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(0, 255, 200, 0.6);
-        background: rgba(30, 41, 59, 0.9);
-      }
-      .car-card.selected {
-        border-color: #00ffaa;
-        background: rgba(0, 255, 170, 0.15);
-        box-shadow: 0 0 20px rgba(0, 255, 170, 0.4), inset 0 0 10px rgba(0, 255, 170, 0.2);
-        transform: scale(1.05);
-      }
-      .car-card-icon {
-        font-size: 26px;
-      }
-      .car-card-name {
-        font-size: 11px;
-        font-weight: 800;
-        color: #f1f5f9;
-        white-space: nowrap;
-      }
-      .car-card-cat {
-        font-size: 9px;
-        color: #94a3b8;
-        letter-spacing: 0.5px;
-      }
-
-      .car-spec-detail {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 10px;
-        padding: 10px 16px;
-        margin-top: 10px;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        font-size: 11px;
-      }
-      .spec-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .spec-name {
-        color: #94a3b8;
-        font-size: 9px;
-        letter-spacing: 1px;
-      }
-      .spec-val {
-        color: #00ffaa;
-        font-weight: 800;
-        font-size: 13px;
-      }
-
-      .btn-play {
-        background: linear-gradient(135deg, #00ffaa, #0088ff);
-        border: none;
-        border-radius: 30px;
-        color: #050810;
-        font-family: 'Black Ops One', cursive;
-        font-size: 20px;
-        padding: 12px 42px;
-        cursor: pointer;
-        box-shadow: 0 0 30px rgba(0, 255, 170, 0.6);
-        transition: all 0.2s ease;
-        letter-spacing: 2px;
-        pointer-events: auto;
-      }
-      .btn-play:hover {
-        transform: scale(1.06);
-        box-shadow: 0 0 45px rgba(0, 255, 170, 0.9);
-      }
-
-      .controls-hint {
-        margin-top: 14px;
-        font-size: 11px;
-        color: #64748b;
-        letter-spacing: 1px;
-      }
-      .key {
-        display: inline-block;
-        background: #1e293b;
-        color: #e2e8f0;
-        padding: 2px 6px;
-        border-radius: 4px;
-        border: 1px solid #334155;
-        font-weight: 800;
-        margin: 0 2px;
-      }
-
-      /* Audio Controls Widget */
-      .audio-controls-box {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 50;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(0, 255, 200, 0.25);
-        border-radius: 20px;
-        padding: 4px 12px 4px 8px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-        pointer-events: auto;
-      }
-      #audio-toggle {
-        background: transparent;
-        border: none;
-        color: #fff;
-        font-size: 18px;
-        cursor: pointer;
-        outline: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        transition: transform 0.15s ease;
-      }
-      #audio-toggle:hover {
-        transform: scale(1.15);
-      }
-      #audio-volume {
-        width: 75px;
-        height: 6px;
-        -webkit-appearance: none;
-        appearance: none;
-        background: #334155;
-        border-radius: 4px;
-        outline: none;
-        cursor: pointer;
-      }
-      #audio-volume::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: #00ffaa;
-        box-shadow: 0 0 6px rgba(0, 255, 170, 0.8);
-        cursor: pointer;
-      }
-      #audio-volume::-moz-range-thumb {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: #00ffaa;
-        border: none;
-        box-shadow: 0 0 6px rgba(0, 255, 170, 0.8);
-        cursor: pointer;
-      }
-
-      /* Red screen flash on player hit */
+      /* Damage Red Flash */
       #damage-flash {
         position: absolute;
         top: 0;
@@ -536,54 +316,469 @@
         transition: opacity 0.1s ease;
       }
 
-      .stats-summary {
+      /* Audio Controls in Header */
+      .audio-controls-box {
+        position: fixed;
+        top: 18px;
+        right: 28px;
+        z-index: 120;
         display: flex;
-        gap: 16px;
-        margin: 18px 0;
+        align-items: center;
+        gap: 8px;
+        background: rgba(19, 19, 20, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 219, 233, 0.35);
+        padding: 4px 12px;
+        pointer-events: auto;
       }
-      .stat-box {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid rgba(0, 255, 200, 0.3);
-        border-radius: 10px;
-        padding: 12px 20px;
-        min-width: 110px;
+      #audio-toggle {
+        background: transparent;
+        border: none;
+        color: #00dbe9;
+        font-size: 18px;
+        cursor: pointer;
       }
-      .stat-num {
-        font-size: 24px;
-        font-weight: 900;
-        color: #00ffaa;
+      #audio-volume {
+        width: 75px;
+        height: 5px;
+        accent-color: #00dbe9;
+        cursor: pointer;
       }
-      .stat-label {
+
+      /* ---------------- Cyber-Velocity Welcome Screen ---------------- */
+      .modal-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .modal-screen.hidden {
+        display: none !important;
+      }
+
+      /* Welcome Screen Top Header */
+      .welcome-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 32px;
+        z-index: 110;
+        background: transparent;
+      }
+      .game-heading-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(32px, 4vw, 44px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        font-style: italic;
+        color: #dbfcff;
+      }
+
+      /* Welcome Main Layout */
+      .welcome-main-layout {
+        display: flex;
+        flex: 1;
+        position: relative;
+        margin-top: 70px;
+        margin-bottom: 64px;
+        z-index: 10;
+        height: calc(100vh - 134px);
+      }
+
+      /* Left Sidebar: Garage Selector */
+      .garage-sidebar {
+        width: 260px;
+        height: 100%;
+        border-right: 1px solid rgba(0, 219, 233, 0.3);
+        background: rgba(10, 10, 15, 0.85);
+        backdrop-filter: blur(16px);
+        position: fixed;
+        left: 0;
+        top: 70px;
+        bottom: 64px;
+        z-index: 40;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 14px;
+      }
+      .garage-sidebar-header {
+        margin-bottom: 16px;
+        padding: 0 6px;
+      }
+      .sidebar-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #00dbe9;
+        letter-spacing: 0.05em;
+      }
+      .sidebar-subtitle {
         font-size: 11px;
-        color: #94a3b8;
-        letter-spacing: 1px;
+        font-weight: 700;
+        color: #b9cacb;
+        letter-spacing: 0.15em;
+        margin-top: 4px;
+      }
+      .garage-car-list {
+        list-style: none;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .car-nav-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 12px 14px;
+        background: transparent;
+        color: #b9cacb;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+      }
+      .car-nav-btn:hover {
+        color: #00dbe9;
+        background: rgba(0, 219, 233, 0.1);
+        border-color: rgba(0, 219, 233, 0.4);
+      }
+      .car-nav-btn.active {
+        background: #00dbe9;
+        color: #002022;
+        font-weight: 700;
+        border-color: #00dbe9;
+        box-shadow: 0 0 15px rgba(0, 219, 233, 0.5);
+        transform: translateX(4px);
+      }
+      .nav-icon {
+        margin-right: 10px;
+        font-size: 20px;
+      }
+      .car-nav-name {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      /* Center DEMO_SPACE */
+      .demo-space-container {
+        flex: 1;
+        margin-left: 260px;
+        margin-right: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        pointer-events: none;
+      }
+      .demo-space-frame {
+        width: 100%;
+        height: 100%;
+        border: 1px solid rgba(0, 219, 233, 0.35);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 10, 15, 0.2);
+        box-shadow: inset 0 0 30px rgba(0, 219, 233, 0.05);
+      }
+      .frame-corner {
+        position: absolute;
+        width: 36px;
+        height: 36px;
+        border-color: rgba(0, 219, 233, 0.85);
+        border-style: solid;
+      }
+      .corner-tl { top: 0; left: 0; border-width: 3px 0 0 3px; }
+      .corner-tr { top: 0; right: 0; border-width: 3px 3px 0 0; }
+      .corner-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+      .corner-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+
+      .demo-crosshairs {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.18;
+        pointer-events: none;
+      }
+      .crosshair-v { width: 1px; height: 100%; background: #00dbe9; }
+      .crosshair-h { width: 100%; height: 1px; background: #00dbe9; position: absolute; }
+      .crosshair-circle { width: 180px; height: 180px; border: 1px solid #00dbe9; border-radius: 50%; position: absolute; }
+
+      .demo-space-label {
+        text-align: center;
+        position: absolute;
+        bottom: 24px;
+        opacity: 0.6;
+      }
+      .demo-icon {
+        font-size: 32px;
+        color: #00dbe9;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .demo-heading {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 18px;
+        letter-spacing: 0.2em;
+        color: #00dbe9;
+      }
+      .demo-subheading {
+        font-size: 11px;
+        color: #b9cacb;
+        letter-spacing: 0.15em;
         margin-top: 2px;
       }
 
-      @media (max-width: 768px) {
-        .garage-grid {
-          grid-template-columns: repeat(3, 1fr);
+      /* Right Sidebar: Vehicle Specs */
+      .specs-sidebar {
+        width: 280px;
+        height: 100%;
+        position: fixed;
+        right: 0;
+        top: 70px;
+        bottom: 64px;
+        padding: 20px 16px;
+        background: rgba(10, 10, 15, 0.85);
+        backdrop-filter: blur(16px);
+        border-left: 1px solid rgba(0, 219, 233, 0.3);
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+      }
+      .specs-sidebar-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #00dbe9;
+        margin-bottom: 24px;
+        border-bottom: 1px solid rgba(0, 219, 233, 0.3);
+        padding-bottom: 8px;
+        letter-spacing: 0.05em;
+      }
+      .specs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        flex: 1;
+      }
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      .stat-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #e5e2e3;
+        letter-spacing: 0.15em;
+      }
+      .stat-val {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .text-primary { color: #00dbe9; }
+      .text-secondary { color: #ff525c; }
+      .text-tertiary { color: #fffa9e; }
+
+      .stat-track {
+        height: 14px;
+        background: #353436;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .bg-primary { background: #00dbe9; box-shadow: 0 0 10px #00dbe9; }
+      .bg-secondary { background: #ff525c; box-shadow: 0 0 10px #ff525c; }
+      .bg-tertiary { background: #e6df00; box-shadow: 0 0 10px #e6df00; }
+
+      .stat-segments {
+        position: absolute;
+        inset: 0;
+        display: flex;
+      }
+      .stat-segments div {
+        flex: 1;
+        border-right: 1px solid rgba(19, 19, 20, 0.6);
+        height: 100%;
+      }
+
+      .active-modules-box {
+        margin-top: auto;
+        border-top: 1px solid rgba(0, 219, 233, 0.3);
+        padding-top: 14px;
+      }
+      .modules-title {
+        font-size: 10px;
+        font-weight: 700;
+        color: #b9cacb;
+        letter-spacing: 0.15em;
+        display: block;
+        margin-bottom: 8px;
+      }
+      .modules-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .module-chip {
+        padding: 4px 8px;
+        background: rgba(53, 52, 54, 0.5);
+        border-left: 2px solid #e6df00;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        color: #e5e2e3;
+      }
+      .chip-icon {
+        font-size: 14px;
+        margin-right: 4px;
+        color: #e6df00;
+      }
+
+      /* Welcome Footer */
+      .welcome-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 56px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 32px;
+        background: rgba(14, 14, 15, 0.85);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 50;
+      }
+      .footer-brand {
+        font-size: 11px;
+        color: #fffa9e;
+        letter-spacing: 0.1em;
+      }
+      .footer-keys {
+        display: flex;
+        gap: 18px;
+      }
+      .key-guide {
+        font-size: 11px;
+        font-weight: 700;
+        color: #b9cacb;
+        letter-spacing: 0.1em;
+        transition: color 0.2s ease;
+      }
+      .key-guide:hover {
+        color: #00dbe9;
+      }
+
+      /* Launch Button */
+      .welcome-launch-wrapper {
+        position: fixed;
+        bottom: 76px;
+        right: 32px;
+        z-index: 60;
+      }
+      .welcome-launch-btn {
+        background: #ff525c;
+        color: #680012;
+        padding: 14px 36px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-style: italic;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 25px rgba(255, 82, 92, 0.7);
+      }
+      .welcome-launch-btn:hover {
+        background: #fff;
+        color: #000;
+        transform: scale(1.06);
+        box-shadow: 0 0 35px rgba(255, 255, 255, 0.9);
+      }
+
+      /* Game Over & Victory Screens */
+      .gameover-screen {
+        background: radial-gradient(circle at center, rgba(32, 31, 32, 0.94) 0%, rgba(14, 14, 15, 0.98) 100%);
+        backdrop-filter: blur(20px);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+      }
+      .stats-summary {
+        display: flex;
+        gap: 16px;
+        margin: 24px 0;
+      }
+      .stat-box {
+        background: #201f20;
+        border: 1px solid rgba(0, 219, 233, 0.35);
+        padding: 14px 22px;
+        min-width: 120px;
+      }
+      .stat-num {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #00dbe9;
+      }
+      .stat-box-label {
+        font-size: 10px;
+        color: #b9cacb;
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+
+      @media (max-width: 900px) {
+        .garage-sidebar {
+          width: 220px;
         }
-        .bars-container {
-          width: 150px;
+        .specs-sidebar {
+          width: 240px;
         }
-        .minimap-wrapper {
-          width: 100px;
-          height: 100px;
-        }
-        .money-val {
-          font-size: 24px;
-        }
-        .wanted-stars {
-          font-size: 18px;
-        }
-        .speed-num {
-          font-size: 30px;
+        .demo-space-container {
+          margin-left: 220px;
+          margin-right: 240px;
         }
       }
     </style>
   </head>
-  <body>
+  <body class="grid-bg">
     <div id="canvas-container"></div>
     <div id="damage-flash"></div>
 
@@ -592,12 +787,11 @@
       <input type="range" id="audio-volume" min="0" max="100" value="50" title="Master Volume" />
     </div>
 
-    <!-- Main HUD -->
-    <div id="hud">
-      <!-- Top Bar -->
+    <!-- Main In-Game HUD -->
+    <div id="hud" class="hidden">
       <div class="top-hud">
         <!-- Money, Bags & GPS -->
-        <div class="hud-card money-display">
+        <div class="hud-card money-display clip-edges">
           <span class="money-icon">💰</span>
           <div>
             <div id="money-val" class="money-val">$0</div>
@@ -607,7 +801,7 @@
         </div>
 
         <!-- Wanted Stars -->
-        <div class="hud-card wanted-container">
+        <div class="hud-card wanted-container clip-edges">
           <div class="wanted-title">WANTED LEVEL</div>
           <div class="wanted-stars">
             <span class="wanted-star" id="star-1">★</span>
@@ -619,42 +813,42 @@
         </div>
 
         <!-- Score & Multiplier & Car Switcher -->
-        <div class="hud-card score-display">
+        <div class="hud-card score-display clip-edges">
           <div id="score-val" class="score-val">0</div>
           <div class="combo-tag" id="combo-tag">1.0x MULTIPLIER</div>
-          <button id="btn-quick-switch" class="btn-switch-car" title="Press 'C' to switch vehicle">🚘 SWITCH CAR (C)</button>
+          <button id="btn-quick-switch" class="btn-switch-car clip-edges" title="Press 'C' to switch vehicle">🚘 SWITCH CAR (C)</button>
         </div>
       </div>
 
-      <!-- Top-Right Takedown Notification Toast Feed -->
+      <!-- Top-Right Takedown Toast Feed -->
       <div id="takedown-feed" class="toast-feed"></div>
 
       <!-- Bottom Bar -->
       <div class="bottom-hud">
         <!-- Health & Boost Bars -->
-        <div class="hud-card bars-container">
+        <div class="hud-card bars-container clip-edges">
           <div>
             <div class="bar-label">
-              <span id="car-name-hud" style="color: #00ff88;">CYBER STINGER</span>
-              <span id="health-pct" style="color: #00ff88;">100%</span>
+              <span id="car-name-hud" style="color: #00dbe9;">CYBER STINGER</span>
+              <span id="health-pct" style="color: #00dbe9;">100%</span>
             </div>
-            <div class="bar-track">
+            <div class="bar-track clip-edges">
               <div id="health-fill" class="bar-fill health-fill" style="width: 100%;"></div>
             </div>
           </div>
           <div>
             <div class="bar-label">
-              <span style="color: #00d2ff;">NITRO BOOST</span>
-              <span id="boost-pct" style="color: #00d2ff;">100%</span>
+              <span style="color: #38bdf8;">NITRO BOOST</span>
+              <span id="boost-pct" style="color: #38bdf8;">100%</span>
             </div>
-            <div class="bar-track">
+            <div class="bar-track clip-edges">
               <div id="boost-fill" class="bar-fill boost-fill" style="width: 100%;"></div>
             </div>
           </div>
         </div>
 
         <!-- Speedometer -->
-        <div class="hud-card speedometer">
+        <div class="hud-card speedometer clip-edges">
           <div id="speed-num" class="speed-num">0</div>
           <div class="speed-unit">MPH</div>
         </div>
@@ -666,123 +860,221 @@
       </div>
     </div>
 
-    <!-- Start Screen Modal with Interactive Garage Selector -->
+    <!-- ---------------- Cyber-Velocity Welcome Landing Screen ---------------- -->
     <div id="start-modal" class="modal-screen">
-      <h1 class="game-title">HEAT RUNNER 3D</h1>
-      <p class="game-subtitle">Steal cash bags across the metropolis, escape police pursuit, jump over sand dunes & drift through the container seaport!</p>
-      
-      <!-- Garage Vehicle Selector -->
-      <div class="garage-section">
-        <div class="garage-title">🏎️ CHOOSE YOUR GETAWAY VEHICLE</div>
-        <div class="garage-grid" id="garage-grid">
-          <div class="car-card selected" data-car="cyber_stinger">
-            <span class="car-card-icon">⚡</span>
-            <span class="car-card-name">Cyber Stinger</span>
-            <span class="car-card-cat">Tuner</span>
-          </div>
-          <div class="car-card" data-car="hypercar">
-            <span class="car-card-icon">🚀</span>
-            <span class="car-card-name">Hypercar</span>
-            <span class="car-card-cat">Track</span>
-          </div>
-          <div class="car-card" data-car="muscle">
-            <span class="car-card-icon">🔥</span>
-            <span class="car-card-name">Retro Muscle</span>
-            <span class="car-card-cat">V8 Power</span>
-          </div>
-          <div class="car-card" data-car="monster_truck">
-            <span class="car-card-icon">🛞</span>
-            <span class="car-card-name">Monster Titan</span>
-            <span class="car-card-cat">4x4 Heavy</span>
-          </div>
-          <div class="car-card" data-car="rally_baja">
-            <span class="car-card-icon">🏎️</span>
-            <span class="car-card-name">Rally Baja</span>
-            <span class="car-card-cat">Dune Rally</span>
-          </div>
-          <div class="car-card" data-car="cyber_sedan">
-            <span class="car-card-icon">🏙️</span>
-            <span class="car-card-name">Cyber Sedan</span>
-            <span class="car-card-cat">Luxury</span>
-          </div>
-          <div class="car-card" data-car="armored_limo">
-            <span class="car-card-icon">🛡️</span>
-            <span class="car-card-name">Armored Limo</span>
-            <span class="car-card-cat">Tank</span>
-          </div>
-        </div>
+      <div class="scanlines"></div>
 
-        <div class="car-spec-detail" id="car-spec-detail">
-          <div class="spec-item">
-            <span class="spec-name">TOP SPEED</span>
-            <span class="spec-val" id="spec-speed">85 MPH</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-name">ARMOR HP</span>
-            <span class="spec-val" id="spec-armor">100 HP</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-name">ACCELERATION</span>
-            <span class="spec-val" id="spec-accel">High</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-name">RAM POWER</span>
-            <span class="spec-val" id="spec-ram">Normal</span>
-          </div>
+      <!-- TopAppBar -->
+      <header class="welcome-header">
+        <div class="game-heading-title glow-sm">
+          CASH &amp; CRASH
         </div>
+      </header>
+
+      <!-- Main Layout -->
+      <div class="welcome-main-layout">
+        <!-- Left SideNavBar: Garage Vehicle Selector -->
+        <nav class="garage-sidebar">
+          <div class="garage-sidebar-header">
+            <h2 class="sidebar-title">GARAGE</h2>
+            <p class="sidebar-subtitle">SELECT VEHICLE</p>
+          </div>
+          <ul class="garage-car-list" id="garage-car-list">
+            <li>
+              <button class="car-nav-btn active clip-edges" data-car="cyber_stinger">
+                <span class="material-symbols-outlined nav-icon" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                <span class="car-nav-name">Cyber Stinger</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="hypercar">
+                <span class="material-symbols-outlined nav-icon">rocket_launch</span>
+                <span class="car-nav-name">Futuristic Hypercar</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="muscle">
+                <span class="material-symbols-outlined nav-icon">settings_backup_restore</span>
+                <span class="car-nav-name">Retro Muscle</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="monster_truck">
+                <span class="material-symbols-outlined nav-icon">directions_car</span>
+                <span class="car-nav-name">Monster Titan</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="rally_baja">
+                <span class="material-symbols-outlined nav-icon">terrain</span>
+                <span class="car-nav-name">Rally Baja</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="cyber_sedan">
+                <span class="material-symbols-outlined nav-icon">business_center</span>
+                <span class="car-nav-name">Cyber Executive</span>
+              </button>
+            </li>
+            <li>
+              <button class="car-nav-btn clip-edges" data-car="armored_limo">
+                <span class="material-symbols-outlined nav-icon">shield</span>
+                <span class="car-nav-name">Armored Juggernaut</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Center: DEMO_SPACE (Transparent view into 3D Rotating Car Showroom) -->
+        <main class="demo-space-container">
+          <div class="demo-space-frame">
+            <!-- Industrial Frame Details -->
+            <div class="frame-corner corner-tl"></div>
+            <div class="frame-corner corner-tr"></div>
+            <div class="frame-corner corner-bl"></div>
+            <div class="frame-corner corner-br"></div>
+            <!-- Crosshairs -->
+            <div class="demo-crosshairs">
+              <div class="crosshair-v"></div>
+              <div class="crosshair-h"></div>
+              <div class="crosshair-circle"></div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right: VEHICLE SPECS Panel -->
+        <aside class="specs-sidebar">
+          <h2 class="specs-sidebar-title">VEHICLE SPECS</h2>
+          <div class="specs-list">
+            <!-- Stat: Top Speed -->
+            <div class="stat-block">
+              <div class="stat-header">
+                <span class="stat-label">TOP SPEED</span>
+                <span class="stat-val text-primary" id="spec-speed-val">85 MPH</span>
+              </div>
+              <div class="stat-track clip-edges">
+                <div class="stat-bar bg-primary" id="meter-speed-bar" style="width: 70%;"></div>
+                <div class="stat-segments"><div></div><div></div><div></div><div></div><div></div></div>
+              </div>
+            </div>
+            <!-- Stat: Armor HP -->
+            <div class="stat-block">
+              <div class="stat-header">
+                <span class="stat-label">ARMOR HP</span>
+                <span class="stat-val text-secondary" id="spec-armor-val">100 HP</span>
+              </div>
+              <div class="stat-track clip-edges">
+                <div class="stat-bar bg-secondary" id="meter-armor-bar" style="width: 40%;"></div>
+                <div class="stat-segments"><div></div><div></div><div></div><div></div><div></div></div>
+              </div>
+            </div>
+            <!-- Stat: Acceleration -->
+            <div class="stat-block">
+              <div class="stat-header">
+                <span class="stat-label">ACCELERATION</span>
+                <span class="stat-val text-primary" id="spec-accel-val">HIGH</span>
+              </div>
+              <div class="stat-track clip-edges">
+                <div class="stat-bar bg-primary" id="meter-accel-bar" style="width: 75%;"></div>
+                <div class="stat-segments"><div></div><div></div><div></div><div></div><div></div></div>
+              </div>
+            </div>
+            <!-- Stat: Ram Power -->
+            <div class="stat-block">
+              <div class="stat-header">
+                <span class="stat-label">RAM POWER</span>
+                <span class="stat-val text-tertiary" id="spec-ram-val">NORMAL</span>
+              </div>
+              <div class="stat-track clip-edges">
+                <div class="stat-bar bg-tertiary" id="meter-ram-bar" style="width: 40%;"></div>
+                <div class="stat-segments"><div></div><div></div><div></div><div></div><div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Modules Chips -->
+          <div class="active-modules-box">
+            <span class="modules-title">ACTIVE MODULES</span>
+            <div class="modules-chips" id="modules-chips">
+              <div class="module-chip clip-edges">
+                <span class="material-symbols-outlined chip-icon">local_fire_department</span>
+                NITRO CORE
+              </div>
+              <div class="module-chip clip-edges">
+                <span class="material-symbols-outlined chip-icon">shield</span>
+                REINFORCED CHASSIS
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
 
-      <button id="start-btn" class="btn-play">START GETAWAY</button>
+      <!-- Footer / Controls Guide -->
+      <footer class="welcome-footer">
+        <div class="footer-brand">
+          CASH &amp; CRASH MULTIPLAYER
+        </div>
+        <div class="footer-keys">
+          <span class="key-guide">DRIVE (W/A/S/D)</span>
+          <span class="key-guide">DRIFT (SPACE)</span>
+          <span class="key-guide">BOOST (SHIFT)</span>
+          <span class="key-guide">SWITCH (C)</span>
+          <span class="key-guide">LAUNCH (ENTER)</span>
+        </div>
+      </footer>
 
-      <div class="controls-hint">
-        Controls: <span class="key">W</span> Gas &bull; <span class="key">S</span> Reverse &bull; <span class="key">A</span>/<span class="key">D</span> Steer &bull; <span class="key">SPACE</span> Drift &bull; <span class="key">SHIFT</span> Boost &bull; <span class="key">C</span> Switch Car
+      <!-- Launch Button -->
+      <div class="welcome-launch-wrapper">
+        <button id="start-btn" class="welcome-launch-btn clip-edges glow-red">
+          LAUNCH <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+        </button>
       </div>
     </div>
 
     <!-- Game Over Screen Modal -->
-    <div id="gameover-modal" class="modal-screen hidden">
-      <h1 class="game-title" style="background: linear-gradient(135deg, #ff3366, #ff0033); -webkit-background-clip: text;">BUSTED!</h1>
-      <p class="game-subtitle" id="gameover-reason">Your car was completely wrecked by police cruisers.</p>
+    <div id="gameover-modal" class="modal-screen gameover-screen hidden">
+      <h1 class="game-heading-title" style="color: #ff525c;">BUSTED!</h1>
+      <p style="color: #b9cacb; margin-top: 6px;" id="gameover-reason">Your car was completely wrecked by police cruisers.</p>
 
       <div class="stats-summary">
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="end-cash" class="stat-num">$0</div>
-          <div class="stat-label">CASH STOLEN</div>
+          <div class="stat-box-label">CASH STOLEN</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="end-wrecks" class="stat-num">0</div>
-          <div class="stat-label">COPS WRECKED</div>
+          <div class="stat-box-label">COPS WRECKED</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="end-score" class="stat-num">0</div>
-          <div class="stat-label">FINAL SCORE</div>
+          <div class="stat-box-label">FINAL SCORE</div>
         </div>
       </div>
 
-      <button id="restart-btn" class="btn-play">PLAY AGAIN</button>
+      <button id="restart-btn" class="welcome-launch-btn clip-edges glow-red">PLAY AGAIN</button>
     </div>
 
     <!-- Victory Screen Modal -->
-    <div id="victory-modal" class="modal-screen hidden">
-      <h1 class="game-title" style="background: linear-gradient(135deg, #00ff88, #00d2ff); -webkit-background-clip: text;">MISSION COMPLETE!</h1>
-      <p class="game-subtitle">You made it to the extraction chopper with all the loot and outsmarted the entire police force!</p>
+    <div id="victory-modal" class="modal-screen gameover-screen hidden">
+      <h1 class="game-heading-title" style="color: #00dbe9;">MISSION COMPLETE!</h1>
+      <p style="color: #b9cacb; margin-top: 6px;">You made it to the extraction chopper with all the loot and outsmarted the entire police force!</p>
 
       <div class="stats-summary">
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="vic-cash" class="stat-num">$0</div>
-          <div class="stat-label">TOTAL LOOT</div>
+          <div class="stat-box-label">TOTAL LOOT</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="vic-wrecks" class="stat-num">0</div>
-          <div class="stat-label">COPS DESTROYED</div>
+          <div class="stat-box-label">COPS DESTROYED</div>
         </div>
-        <div class="stat-box">
+        <div class="stat-box clip-edges">
           <div id="vic-score" class="stat-num">0</div>
-          <div class="stat-label">VICTORY SCORE</div>
+          <div class="stat-box-label">VICTORY SCORE</div>
         </div>
       </div>
 
-      <button id="vic-restart-btn" class="btn-play">PLAY AGAIN</button>
+      <button id="vic-restart-btn" class="welcome-launch-btn clip-edges glow-cyan" style="background: #00dbe9; color: #002022;">PLAY AGAIN</button>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

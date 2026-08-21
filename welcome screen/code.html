@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CASH &amp; CRASH</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#00363a",
+                    "on-secondary": "#680012",
+                    "on-secondary-fixed": "#410008",
+                    "surface-container-low": "#1c1b1c",
+                    "on-primary-fixed": "#002022",
+                    "tertiary-container": "#e6df00",
+                    "on-secondary-fixed-variant": "#92001e",
+                    "surface-bright": "#3a393a",
+                    "tertiary": "#fffa9e",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed": "#1e1c00",
+                    "surface-container-lowest": "#0e0e0f",
+                    "surface-variant": "#353436",
+                    "inverse-primary": "#006970",
+                    "on-primary-container": "#006970",
+                    "on-error-container": "#ffdad6",
+                    "on-surface-variant": "#b9cacb",
+                    "secondary-fixed-dim": "#ffb3b2",
+                    "tertiary-fixed": "#f0e800",
+                    "on-tertiary": "#343200",
+                    "primary-fixed-dim": "#00dbe9",
+                    "surface": "#131314",
+                    "primary": "#dbfcff",
+                    "outline": "#849495",
+                    "error-container": "#93000a",
+                    "primary-fixed": "#7df4ff",
+                    "outline-variant": "#3b494b",
+                    "secondary-container": "#ff525c",
+                    "on-tertiary-container": "#656100",
+                    "background": "#131314",
+                    "on-primary-fixed-variant": "#004f54",
+                    "surface-container": "#201f20",
+                    "surface-dim": "#131314",
+                    "inverse-on-surface": "#313031",
+                    "surface-container-high": "#2a2a2b",
+                    "surface-container-highest": "#353436",
+                    "on-surface": "#e5e2e3",
+                    "inverse-surface": "#e5e2e3",
+                    "on-background": "#e5e2e3",
+                    "error": "#ffb4ab",
+                    "secondary-fixed": "#ffdad8",
+                    "secondary": "#ffb3b2",
+                    "surface-tint": "#00dbe9",
+                    "primary-container": "#00f0ff",
+                    "tertiary-fixed-dim": "#d2cc00",
+                    "on-secondary-container": "#5b000f",
+                    "on-tertiary-fixed-variant": "#4b4900"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "safe-area-car": "120px",
+                    "margin-screen": "32px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": [
+                            "Space Grotesk"
+                    ],
+                    "headline-md": [
+                            "Space Grotesk"
+                    ],
+                    "body-lg": [
+                            "JetBrains Mono"
+                    ],
+                    "body-md": [
+                            "JetBrains Mono"
+                    ],
+                    "stats-xl": [
+                            "Space Grotesk"
+                    ],
+                    "label-caps": [
+                            "JetBrains Mono"
+                    ],
+                    "display-hero": [
+                            "Space Grotesk"
+                    ]
+            },
+            "fontSize": {
+                    "headline-lg": [
+                            "40px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "stats-xl": [
+                            "48px",
+                            {
+                                    "lineHeight": "1",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.15em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "display-hero": [
+                            "72px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.04em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        /* Custom styling for scanlines and CRT effects */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(to right, rgba(0, 219, 233, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 219, 233, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .glow-sm {
+            text-shadow: 0 0 10px rgba(0, 219, 233, 0.5);
+        }
+        
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(0, 219, 233, 0.5);
+        }
+        
+        .glow-red {
+            box-shadow: 0 0 15px rgba(255, 82, 92, 0.5);
+        }
+
+        .clip-edges {
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen w-screen overflow-hidden flex flex-col font-body-md grid-bg">
+<!-- Scanlines Overlay -->
+<div class="scanlines"></div>
+<!-- TopAppBar -->
+<header class="docked full-width top-0 bg-transparent flex justify-between items-center w-full px-margin-screen py-gutter z-50">
+<div class="font-headline-lg text-headline-lg font-bold text-primary tracking-tighter uppercase italic glow-sm">
+            CASH &amp; CRASH
+        </div>
+<div class="flex space-x-6">
+<button class="text-on-surface-variant hover:text-primary hover:glow-sm transition-all scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary hover:glow-sm transition-all scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary hover:glow-sm transition-all scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">person</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 relative mt-20 mb-20 z-10">
+<!-- SideNavBar -->
+<nav class="h-full w-72 border-r border-primary/30 bg-surface-container/60 backdrop-blur-md fixed left-0 top-0 z-40 flex flex-col pt-32 pb-gutter">
+<div class="px-gutter mb-8">
+<h2 class="font-headline-md text-headline-md text-primary">GARAGE</h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-1">SELECT VEHICLE</p>
+</div>
+<ul class="flex-1 overflow-y-auto space-y-2 px-unit">
+<li>
+<button class="w-full flex items-center px-4 py-3 bg-primary text-on-primary font-bold shadow-[0_0_15px_rgba(0,219,233,0.5)] translate-x-1 transition-transform clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-caps text-label-caps uppercase">Cyber Stinger</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">rocket_launch</span>
+<span class="font-label-caps text-label-caps uppercase">Futuristic Hypercar</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">settings_backup_restore</span>
+<span class="font-label-caps text-label-caps uppercase">Retro Muscle</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">directions_car</span>
+<span class="font-label-caps text-label-caps uppercase">Monster Titan</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">terrain</span>
+<span class="font-label-caps text-label-caps uppercase">Rally Baja</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">business_center</span>
+<span class="font-label-caps text-label-caps uppercase">Cyber Executive</span>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-colors clip-edges">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">shield</span>
+<span class="font-label-caps text-label-caps uppercase">Armored Juggernaut</span>
+</button>
+</li>
+</ul>
+<div class="px-gutter mt-auto pt-4 border-t border-primary/30">
+<button class="w-full py-3 bg-transparent border border-primary text-primary font-label-caps text-label-caps hover:bg-primary hover:text-on-primary transition-colors glow-cyan clip-edges uppercase">
+                    UPGRADE
+                </button>
+</div>
+</nav>
+<!-- Center: DEMO_SPACE -->
+<main class="flex-1 ml-72 mr-80 flex items-center justify-center p-8">
+<div class="w-full h-full border border-outline-variant/50 relative flex items-center justify-center bg-surface-container-lowest/40 backdrop-blur-sm">
+<!-- Industrial Frame Details -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/50"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary/50"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary/50"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary/50"></div>
+<!-- Crosshairs -->
+<div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+<div class="w-px h-full bg-primary"></div>
+<div class="w-full h-px bg-primary absolute"></div>
+<div class="w-32 h-32 border border-primary rounded-full absolute"></div>
+</div>
+<div class="text-center">
+<span class="material-symbols-outlined text-6xl text-on-surface-variant/50 mb-4 block" style="font-variation-settings: 'FILL' 0;">view_in_ar</span>
+<h3 class="font-headline-md text-headline-md text-on-surface-variant/50 tracking-widest">DEMO_SPACE</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/30 mt-2">3D ASSET INJECTION POINT</p>
+</div>
+</div>
+</main>
+<!-- Right: VEHICLE SPECS Panel -->
+<aside class="w-80 fixed right-0 top-32 bottom-24 p-gutter bg-surface-container/60 backdrop-blur-md border-l border-primary/30 z-30 flex flex-col">
+<h2 class="font-headline-md text-headline-md text-primary mb-8 border-b border-primary/30 pb-2">VEHICLE SPECS</h2>
+<div class="space-y-6 flex-1">
+<!-- Stat: Top Speed -->
+<div class="stat-block">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">TOP SPEED</span>
+<span class="font-body-md text-body-md text-primary">280 KPH</span>
+</div>
+<div class="h-4 bg-surface-container-highest border border-outline-variant clip-edges relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary w-[85%] border-r-2 border-background"></div>
+<!-- Segment lines -->
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 h-full"></div>
+</div>
+</div>
+</div>
+<!-- Stat: Armor HP -->
+<div class="stat-block">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">ARMOR HP</span>
+<span class="font-body-md text-body-md text-secondary">4500</span>
+</div>
+<div class="h-4 bg-surface-container-highest border border-outline-variant clip-edges relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-secondary w-[60%] border-r-2 border-background"></div>
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 h-full"></div>
+</div>
+</div>
+</div>
+<!-- Stat: Acceleration -->
+<div class="stat-block">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">ACCELERATION</span>
+<span class="font-body-md text-body-md text-primary">0-100: 2.1s</span>
+</div>
+<div class="h-4 bg-surface-container-highest border border-outline-variant clip-edges relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary w-[90%] border-r-2 border-background"></div>
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 h-full"></div>
+</div>
+</div>
+</div>
+<!-- Stat: Ram Power -->
+<div class="stat-block">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">RAM POWER</span>
+<span class="font-body-md text-body-md text-tertiary-fixed">HEAVY</span>
+</div>
+<div class="h-4 bg-surface-container-highest border border-outline-variant clip-edges relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-tertiary-fixed w-[40%] border-r-2 border-background"></div>
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 border-r border-background/50 h-full"></div>
+<div class="flex-1 h-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Perks Chips -->
+<div class="mt-8 border-t border-primary/30 pt-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-3">ACTIVE MODULES</span>
+<div class="flex flex-wrap gap-2">
+<div class="px-2 py-1 bg-surface-variant/50 border-l-2 border-tertiary-fixed flex items-center text-xs font-label-caps">
+<span class="material-symbols-outlined text-[14px] mr-1" style="font-variation-settings: 'FILL' 0;">local_fire_department</span>
+                        NITRO CORE
+                    </div>
+<div class="px-2 py-1 bg-surface-variant/50 border-l-2 border-tertiary-fixed flex items-center text-xs font-label-caps">
+<span class="material-symbols-outlined text-[14px] mr-1" style="font-variation-settings: 'FILL' 0;">shield</span>
+                        REINFORCED CHASSIS
+                    </div>
+</div>
+</div>
+</aside>
+</div>
+<!-- Footer / Controls -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-margin-screen bg-surface-container-lowest/80 backdrop-blur-sm h-16 border-t border-outline-variant">
+<div class="font-label-caps text-label-caps text-tertiary">
+            © 2024 NITRO-VOID INDUSTRIES
+        </div>
+<div class="flex space-x-6">
+<span class="text-tertiary-fixed font-label-caps text-label-caps hover:text-tertiary transition-colors cursor-help">DRIVE (W/A/S/D)</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps hover:text-tertiary transition-colors cursor-help">DRIFT (SPACE)</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps hover:text-tertiary transition-colors cursor-help">BOOST (SHIFT)</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps hover:text-tertiary transition-colors cursor-help">SWITCH (C)</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps hover:text-tertiary transition-colors cursor-help">LAUNCH (ENTER)</span>
+</div>
+</footer>
+<!-- Launch Button -->
+<div class="fixed bottom-24 right-margin-screen z-50">
+<button class="bg-secondary text-on-secondary px-8 py-4 font-headline-md text-headline-md font-bold uppercase italic clip-edges glow-red hover:bg-white hover:text-black transition-all hover:scale-105 active:scale-95">
+            LAUNCH <span class="material-symbols-outlined align-middle ml-2" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</button>
+</div>
+</body></html>

@@ -9,7 +9,7 @@ import { VEHICLE_CATALOG, VehicleInfo, getVehicleById } from './VehicleCatalog';
 
 export class PlayerCar {
   public meshes: CarMeshes;
-  public position: THREE.Vector3 = new THREE.Vector3(32, 0.4, 32);
+  public position: THREE.Vector3 = new THREE.Vector3(0, 0.4, 0);
   public velocity: THREE.Vector3 = new THREE.Vector3();
   public heading: number = 0; // Rotation around Y in radians
   public speed: number = 0; // Forward speed (units / sec)

@@ -25,6 +25,7 @@ export interface VehicleInfo {
   tagline: string;
   icon: string;
   colorHex: string;
+  modules: string[];
   stats: VehicleStats;
   createMesh: () => CarMeshes;
 }
@@ -34,9 +35,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'cyber_stinger',
     name: 'Cyber Stinger GT',
     category: 'Street Tuner',
-    tagline: 'Agile neon getaway racer with balanced nitro acceleration.',
+    tagline: 'Agile neon getaway racer with balanced nitro acceleration and precision drifting.',
     icon: '⚡',
     colorHex: '#00ff88',
+    modules: ['NITRO CORE', 'REINFORCED CHASSIS'],
     stats: {
       topSpeedMph: 85,
       maxSpeedUnits: 38,
@@ -53,9 +55,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'hypercar',
     name: 'Futuristic Hypercar',
     category: 'Exotic Track',
-    tagline: 'Aerodynamic apex predator built for extreme top-end speed.',
+    tagline: 'Sleek angular design with neon accents and active aerodynamics for extreme high-speed stability.',
     icon: '🚀',
     colorHex: '#00f0ff',
+    modules: ['TWIN TURBO', 'GROUND EFFECT AERO'],
     stats: {
       topSpeedMph: 110,
       maxSpeedUnits: 48,
@@ -72,9 +75,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'muscle',
     name: 'Retro Muscle V8',
     category: 'Classic Muscle',
-    tagline: 'Supercharged American muscle with heavy drift torque and burnouts.',
+    tagline: 'Classic American proportions with a roaring V8, aggressive stance, and timeless curb appeal.',
     icon: '🔥',
     colorHex: '#ff3333',
+    modules: ['V8 SUPERCHARGER', 'DRIFT HYDRAULICS'],
     stats: {
       topSpeedMph: 90,
       maxSpeedUnits: 40,
@@ -91,9 +95,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'monster_truck',
     name: 'Monster Titan 4x4',
     category: 'Heavy All-Terrain',
-    tagline: 'Gigantic tires and heavy bullbar designed to crush police cruisers.',
+    tagline: 'Massive lifted stance with oversized wheels and roll cage protection for ultimate off-road domination.',
     icon: '🛞',
     colorHex: '#ffaa00',
+    modules: ['4x4 CRUSHER', 'HEAVY BULLBAR'],
     stats: {
       topSpeedMph: 70,
       maxSpeedUnits: 32,
@@ -110,9 +115,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'rally_baja',
     name: 'Rally Baja Cruiser',
     category: 'Dune Rally',
-    tagline: 'Reinforced roll cage and long-travel suspension for sand dune jumping.',
+    tagline: 'Rugged off-road warrior with skid plate protection, roof rack, and a spare tire for desert racing.',
     icon: '🏎️',
     colorHex: '#ffbb33',
+    modules: ['LONG-TRAVEL SHOCKS', 'DUNE ROOSTERTAIL'],
     stats: {
       topSpeedMph: 82,
       maxSpeedUnits: 37,
@@ -129,9 +135,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'cyber_sedan',
     name: 'Cyber Executive',
     category: 'Luxury Sport',
-    tagline: 'Smooth, polished executive sedan with balanced luxury handling.',
+    tagline: 'Minimalist luxury meets autonomous tech. Polished chrome finish with advanced driver assistance.',
     icon: '🏙️',
     colorHex: '#cccccc',
+    modules: ['EXECUTIVE STABILITY', 'RADAR JAMMER'],
     stats: {
       topSpeedMph: 78,
       maxSpeedUnits: 35,
@@ -148,9 +155,10 @@ export const VEHICLE_CATALOG: VehicleInfo[] = [
     id: 'armored_limo',
     name: 'Armored Juggernaut',
     category: 'Armored Heavy',
-    tagline: 'Extended heavy-duty fortress limousine with maximum armor plating.',
+    tagline: 'Stretched body with reinforced plating and bulletproof glass for secure executive transport.',
     icon: '🛡️',
     colorHex: '#708090',
+    modules: ['BALLISTIC ARMOR', 'RAMMING PROW'],
     stats: {
       topSpeedMph: 65,
       maxSpeedUnits: 30,

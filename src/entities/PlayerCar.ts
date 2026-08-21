@@ -9,7 +9,7 @@ import { VEHICLE_CATALOG, VehicleInfo, getVehicleById } from './VehicleCatalog';
 
 export class PlayerCar {
   public meshes: CarMeshes;
-  public position: THREE.Vector3 = new THREE.Vector3(0, 0.4, 0);
+  public position: THREE.Vector3 = new THREE.Vector3(0, 0.05, 0);
   public velocity: THREE.Vector3 = new THREE.Vector3();
   public heading: number = 0; // Rotation around Y in radians
   public speed: number = 0; // Forward speed (units / sec)
@@ -115,7 +115,7 @@ export class PlayerCar {
     this.boost = Math.min(this.maxBoost, this.boost + boostAmount);
   }
 
-  public reset(spawnPos: THREE.Vector3 = new THREE.Vector3(32, 0.4, 32)) {
+  public reset(spawnPos: THREE.Vector3 = new THREE.Vector3(32, 0.05, 32)) {
     this.position.copy(spawnPos);
     this.velocity.set(0, 0, 0);
     this.heading = 0;
@@ -253,7 +253,7 @@ export class PlayerCar {
     const groundY = this.getGroundHeight();
 
     if (onRamp) {
-      this.position.y = Math.max(groundY, rampHeight + 0.4);
+      this.position.y = Math.max(groundY, rampHeight + 0.05);
       this.verticalSpeed = 0;
       this.isGrounded = true;
       if (this.speed > 25) {
@@ -339,17 +339,17 @@ export class PlayerCar {
       this.position.z >= this.cityData.cityBounds.minZ &&
       this.position.z <= this.cityData.cityBounds.maxZ;
 
-    let groundY = inIsland ? 0.4 : this.cityData.waterLevel - 5.0;
+    let groundY = inIsland ? 0.05 : this.cityData.waterLevel - 5.0;
 
     // Check Desert Sand Dune Elevation!
     if (this.position.x >= 50 && this.position.z <= -50) {
       const duneH = getDesertDuneHeight(this.position.x, this.position.z);
-      groundY = Math.max(groundY, 0.4 + duneH);
+      groundY = Math.max(groundY, 0.05 + duneH);
     }
 
     // Check Ocean Boardwalk Pier to Cargo Ship
     if (this.position.x >= -355 && this.position.x <= -255 && Math.abs(this.position.z - 180) <= 6.8) {
-      groundY = Math.max(groundY, 0.4);
+      groundY = Math.max(groundY, 0.40);
     }
 
     // Check if on top of any container, pier, boardwalk, or building collider
@@ -359,7 +359,7 @@ export class PlayerCar {
         if (this.position.x >= b.min.x - 0.2 && this.position.x <= b.max.x + 0.2 &&
             this.position.z >= b.min.z - 0.2 && this.position.z <= b.max.z + 0.2) {
           if (this.position.y >= col.height - 0.5) {
-            groundY = Math.max(groundY, col.height + 0.4);
+            groundY = Math.max(groundY, col.height + 0.05);
           }
         }
       }
@@ -369,7 +369,7 @@ export class PlayerCar {
 
   private checkBuildingCollisions() {
     const carBox = new THREE.Box3().setFromCenterAndSize(
-      this.position.clone().add(new THREE.Vector3(0, 0.4, 0)),
+      this.position.clone().add(new THREE.Vector3(0, 0.6, 0)),
       new THREE.Vector3(2.0, 1.0, 4.0)
     );
 

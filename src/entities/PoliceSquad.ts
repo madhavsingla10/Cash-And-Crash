@@ -95,7 +95,8 @@ export class PoliceSquad {
 
     const spawnPos = (validSpawns.length > 0
       ? validSpawns[Math.floor(Math.random() * validSpawns.length)]
-      : new THREE.Vector3(96, 0.5, -96)).clone();
+      : new THREE.Vector3(96, 0.05, -96)).clone();
+    spawnPos.y = 0.05;
 
     let meshes: CarMeshes;
     let maxSpeed = 34;
@@ -355,17 +356,17 @@ export class PoliceSquad {
         }
       }
 
-      // 4. Physical Collision with Player (COP DOES NOT BURN ON PLAYER HIT!)
-      if (distToPlayer < 3.2) {
-        // Heavy momentum impact!
+      // 4. Physical Collision with Player (SOLID STRIKE - COP DOES NOT BURN ON PLAYER HIT!)
+      if (distToPlayer < 3.3) {
         const relativeSpeed = Math.max(15, cop.velocity.distanceTo(this.player.velocity));
-        const playerDamage = Math.max(12, Math.round(relativeSpeed * 0.7));
+        const playerDamage = Math.max(10, Math.round(relativeSpeed * 0.65));
 
-        // Damage player & knock player
+        // Damage player, emit heavy sparks and play solid crash impact sound
         this.player.takeDamage(playerDamage);
-        this.particles.emitSparks(cop.position, 16);
+        this.particles.emitSparks(cop.position, 22);
+        this.audio.playCrashExplosion(false);
 
-        // Heavy impulse push strictly on horizontal XZ plane
+        // Solid push direction on horizontal XZ plane
         const pushDir = new THREE.Vector3(
           this.player.position.x - cop.position.x,
           0,
@@ -377,17 +378,29 @@ export class PoliceSquad {
           pushDir.set(1, 0, 0);
         }
 
-        this.player.position.x += pushDir.x * 1.4;
-        this.player.position.z += pushDir.z * 1.4;
-        this.player.position.y = 0.4;
-        this.player.speed *= 0.7;
+        // 1. Separate overlapping car hulls solidly (no clipping through each other)
+        const overlap = Math.max(0.4, 3.4 - distToPlayer);
+        this.player.position.addScaledVector(pushDir, overlap * 0.65);
+        cop.position.addScaledVector(pushDir, -overlap * 0.65);
 
-        // Cop bounces back and is briefly stunned (0.4s) - BUT DOES NOT DIE!
-        cop.position.x -= pushDir.x * 1.2;
-        cop.position.z -= pushDir.z * 1.2;
-        cop.position.y = 0.5;
-        cop.speed *= -0.35;
-        cop.stunTimer = 0.4;
+        // 2. Momentum transfer along player driving axis (moves forward/backward as per collision)
+        const playerForward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.player.heading);
+        const forwardStrikeDot = pushDir.dot(playerForward);
+
+        if (forwardStrikeDot > 0.3) {
+          // Rear-ended: Solid shove forward
+          this.player.speed = Math.max(this.player.speed + 10, cop.speed * 0.85);
+        } else if (forwardStrikeDot < -0.3) {
+          // Head-on strike: Solid deceleration and backward knock
+          this.player.speed = -Math.abs(this.player.speed) * 0.4 - 8.0;
+        } else {
+          // T-bone / Flank strike: reduce speed and push laterally
+          this.player.speed *= 0.6;
+        }
+
+        // 3. Cop solid rebound and stun (COP NEVER BURNS/DIES FROM HITTING PLAYER)
+        cop.speed = -cop.speed * 0.45 - 6.0;
+        cop.stunTimer = 0.45;
         cop.isCharging = false;
 
         if (this.onPlayerHitCallback) {
@@ -507,10 +520,12 @@ export class PoliceSquad {
         continue;
       }
 
-      // Update Mesh Transform & Desert Dune / Pier Elevation
-      let copGroundY = 0.4;
+      // Update Mesh Transform & Desert Dune / Pier Elevation (Firmly planted on land)
+      let copGroundY = 0.05;
       if (cop.position.x >= 50 && cop.position.z <= -50) {
-        copGroundY = 0.4 + getDesertDuneHeight(cop.position.x, cop.position.z);
+        copGroundY = 0.05 + getDesertDuneHeight(cop.position.x, cop.position.z);
+      } else if (onOceanPier) {
+        copGroundY = 0.40;
       }
       cop.position.y = copGroundY;
 

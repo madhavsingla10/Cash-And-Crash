@@ -2,14 +2,32 @@
 
 > High-octane 3D arcade police pursuit and heist game built with **Three.js**, **TypeScript**, and **Vite**.
 
+---
+
 ## 🎮 Gameplay Overview
 
 In **Cash & Crash**, you drive a high-performance getaway sports car across a sprawling 3D metropolis. Collect floating cash bags scattered along the road network while outmaneuvering an increasingly aggressive police pursuit force.
 
-- **Dodge & Destroy**: Police cruisers chase and ram you. Juke, drift, and bait them into slamming headfirst into skyscraper walls or flying off coastal cliffs!
-- **Escalating Wanted Levels**: From basic patrol cruisers up to high-speed interceptors, armored SWAT vans firing live rounds, and tracking police helicopters.
-- **Smart Waypoint GPS**: A 3D holographic directional arrow hovers above your car, guiding you directly to the active money bag and extraction zone.
-- **Escape & Win**: Collect enough loot to activate the harbor helicopter extraction helipad and complete the heist!
+- **Solid-Strike Physics**: Experience physical vehicular collisions with direct momentum transfer—rear-end impacts surge you forward, head-on crashes arrest momentum, and side hits push you laterally.
+- **Tire-to-Tarmac Ground Contact**: Vehicles roll with their wheels firmly planted on the asphalt, dirt, and sand dunes without hovering in the air.
+- **Escalating Wanted Levels**:
+  - **0 Stars**: Peaceful exploration to line up your heist.
+  - **1 Star (1st Theft)**: 4 Police Cruisers dispatched.
+  - **2 Stars**: High-speed Police Interceptors join the chase.
+  - **3 Stars**: Armored SWAT Vans introduced.
+  - **4–5 Stars**: Heavy SWAT Fleets + Police Chopper spotlight and roof turret fire!
+- **Dodge & Destroy**: Police cruisers chase and ram you. Juke, drift, and bait them into slamming headfirst into skyscraper walls or multi-car pileups!
+- **Classic 3D Arcade Guide Arrow**: A clean, high-visibility directional arrow hovers above your car, guiding you directly to active loot drops and the extraction helipad.
+- **Escape & Win**: Collect loot to activate the harbor helicopter extraction helipad and complete the heist!
+
+---
+
+## 🗺️ Sprawling 3D World Districts
+
+1. **Downtown Metropolis**: 80+ illuminated skyscraper towers, wide multi-lane avenues, and pedestrian plazas.
+2. **Central Park**: 84m expansive open lawn with stunt jump ramps and paved loop roads.
+3. **Farmland & Sand Dunes**: Golden wheat fields, rustic barns, animated windmills, and crest-launching sand dunes.
+4. **Seaport Terminal & Ocean Pier**: Shipping container avenues, rooftop jump ramps, and a drivable wooden ocean boardwalk connecting to a massive cargo ship.
 
 ---
 

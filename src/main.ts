@@ -345,7 +345,7 @@ class Game {
     this.comboResetTimer = 0;
     this.cameraShake = 0;
 
-    this.player.reset(new THREE.Vector3(50, 0.4, 50));
+    this.player.reset(new THREE.Vector3(50, 0.05, 50));
     this.police.reset();
     this.particles.clearAll();
     this.money.setupPickups(this.cityData.moneyLocations);

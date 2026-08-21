@@ -158,11 +158,13 @@ export class PlayerCar {
     this.position.x += this.velocity.x * dt;
     this.position.z += this.velocity.z * dt;
 
-    // Check Ramp launches
+    // Check Ramp launches & smooth climbing
     this.checkRamps();
 
-    // Check if in air (launched from ramp) or on ground
-    if (this.position.y > 0.42) {
+    // Check Ground Height (supports ground and container rooftops)
+    const groundY = this.getGroundHeight();
+
+    if (this.position.y > groundY + 0.25 && this.isGrounded) {
       this.isGrounded = false;
     }
 
@@ -171,14 +173,14 @@ export class PlayerCar {
       this.verticalSpeed -= 32 * dt; // Snappy realistic gravity
       this.position.y += this.verticalSpeed * dt;
 
-      if (this.position.y <= 0.4) {
-        this.position.y = 0.4;
+      if (this.position.y <= groundY) {
+        this.position.y = groundY;
         this.verticalSpeed = 0;
         this.isGrounded = true;
       }
     } else {
-      // Solidly locked to asphalt ground
-      this.position.y = 0.4;
+      // Solidly locked to ground or container rooftop
+      this.position.y = groundY;
       this.verticalSpeed = 0;
     }
 
@@ -212,14 +214,55 @@ export class PlayerCar {
     }
   }
 
+  private getGroundHeight(): number {
+    const inIsland =
+      this.position.x >= this.cityData.cityBounds.minX &&
+      this.position.x <= this.cityData.cityBounds.maxX &&
+      this.position.z >= this.cityData.cityBounds.minZ &&
+      this.position.z <= this.cityData.cityBounds.maxZ;
+
+    let groundY = inIsland ? 0.4 : this.cityData.waterLevel - 5.0;
+
+    // Check if on top of any container, pier, boardwalk, or building collider
+    for (let col of this.cityData.colliders) {
+      if (col.type === 'building' || col.type === 'prop' || col.type === 'ramp') {
+        const b = col.box;
+        if (this.position.x >= b.min.x - 0.2 && this.position.x <= b.max.x + 0.2 &&
+            this.position.z >= b.min.z - 0.2 && this.position.z <= b.max.z + 0.2) {
+          if (this.position.y >= col.height - 0.5) {
+            groundY = Math.max(groundY, col.height + 0.4);
+          }
+        }
+      }
+    }
+    return groundY;
+  }
+
   private checkRamps() {
     for (let ramp of this.cityData.ramps) {
-      const dist = this.position.distanceTo(ramp.position);
-      if (dist < ramp.length * 0.75 && this.isGrounded && this.speed > 15) {
-        // Launch vehicle into the air!
-        this.isGrounded = false;
-        this.verticalSpeed = (this.speed / this.maxForwardSpeed) * 14 + 5;
-        this.audio.playAlertSound();
+      const halfW = ramp.width / 2;
+      const halfL = ramp.length / 2;
+      const rx = this.position.x - ramp.position.x;
+      const rz = this.position.z - ramp.position.z;
+
+      if (Math.abs(rx) <= halfW + 0.8 && Math.abs(rz) <= halfL + 0.8) {
+        // Ramp incline fraction
+        const t = THREE.MathUtils.clamp((rz + halfL) / ramp.length, 0, 1);
+        const rampSurfaceY = 0.4 + t * ramp.height;
+
+        if (this.position.y <= rampSurfaceY + 0.8 && this.position.y >= rampSurfaceY - 1.5) {
+          if (this.speed > 22 && t > 0.85 && this.isGrounded) {
+            // High-speed air launch!
+            this.isGrounded = false;
+            this.verticalSpeed = (this.speed / this.maxForwardSpeed) * 14 + 6;
+            this.audio.playAlertSound();
+          } else {
+            // Smooth climbing up the wooden stage ramp onto containers
+            this.position.y = Math.max(this.position.y, rampSurfaceY);
+            this.verticalSpeed = 0;
+            this.isGrounded = true;
+          }
+        }
       }
     }
   }
@@ -227,7 +270,7 @@ export class PlayerCar {
   private checkBuildingCollisions() {
     const playerRadius = 1.6;
     for (let col of this.cityData.colliders) {
-      if (col.type !== 'building' || this.position.y >= col.height) continue;
+      if (col.type !== 'building' || this.position.y >= col.height + 0.2) continue;
 
       const b = col.box;
       const clampedX = Math.max(b.min.x, Math.min(this.position.x, b.max.x));
